@@ -6,6 +6,8 @@ import { HttpModule } from "@nestjs/axios";
 import configuration from "@/config/configuration";
 import { AppController } from "@/app.controller";
 import { AppService } from "@/app.service";
+import { BlockchainModule } from "@/blockchain/blockchain.module";
+import { WalletModule } from "@/wallet/wallet.module";
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { AppService } from "@/app.service";
       timeout: 10000,
       maxRedirects: 5,
     }),
+    BlockchainModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
