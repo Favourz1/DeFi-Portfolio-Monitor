@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get } from "@nestjs/common";
+import { AppService } from "@/app.service";
+import { ApiResponse } from "@/common/interfaces/api-response.interface";
 
 @Controller()
 export class AppController {
@@ -10,20 +11,25 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('about')
+  @Get("about")
   getAbout() {
     return {
-      message: 'DeFi Portfolio Tracker API is running!',
-      version: '1.0.0',
-      description: 'Backend template for the take-home challenge',
+      message: "DeFi Portfolio Tracker API is running!",
+      version: "1.0.0",
+      description: "Backend template for the take-home challenge",
       timestamp: new Date().toISOString(),
     };
   }
 
-  @Get('health')
-  getHealth() {
+  @Get("health")
+  getHealth(): ApiResponse<{ status: string }> {
     return {
-      status: 'ok',
+      error: false,
+      message: "Service is healthy",
+      statusCode: 200,
+      data: {
+        status: "ok",
+      },
       timestamp: new Date().toISOString(),
     };
   }

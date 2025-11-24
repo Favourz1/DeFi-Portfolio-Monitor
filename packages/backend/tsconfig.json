@@ -10,6 +10,13 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/common/*": ["src/common/*"],
+      "@/config/*": ["src/config/*"],
+      "@/blockchain/*": ["src/blockchain/*"],
+      "@/wallet/*": ["src/wallet/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
