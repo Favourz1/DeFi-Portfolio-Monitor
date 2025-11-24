@@ -195,16 +195,66 @@ export class WalletService {
       // Combine and transform transactions
       let transactions: Transaction[] = [];
 
-      // Add ETH transfers
-      transactions.push(
-        ...normalTxs.map((tx) => ({
+      // Prepare transaction data for batch historical price lookup
+      const transactionsForPricing: Array<{
+        hash: string;
+        timestamp: number;
+        type: "eth" | "token";
+        contractAddress?: string;
+        value: string;
+      }> = [];
+
+      // Add ETH transactions to pricing batch
+      normalTxs.forEach((tx) => {
+        transactionsForPricing.push({
+          hash: tx.hash,
+          timestamp: parseInt(tx.timeStamp),
+          type: "eth",
+          value: ethers.utils.formatEther(tx.value),
+        });
+      });
+
+      // Add token transactions to pricing batch
+      tokenTxs.forEach((tx) => {
+        transactionsForPricing.push({
+          hash: tx.hash,
+          timestamp: parseInt(tx.timeStamp),
+          type: "token",
+          contractAddress: tx.contractAddress,
+          value: ethers.utils.formatUnits(tx.value, parseInt(tx.tokenDecimal)),
+        });
+      });
+
+      // Get historical prices for all transactions in batch
+      let historicalPrices = new Map<string, number>();
+      try {
+        historicalPrices =
+          await this.coingeckoProvider.getBatchHistoricalPrices(
+            transactionsForPricing,
+            network
+          );
+      } catch (error) {
+        this.logger.error(
+          `Failed to get batch historical prices: ${error.message}`
+        );
+        // Continue with zero USD values if batch pricing fails
+      }
+
+      // Process ETH transfers
+      const ethTransactions = normalTxs.map((tx) => {
+        const timestamp = parseInt(tx.timeStamp);
+        const ethValue = ethers.utils.formatEther(tx.value);
+        const historicalUsdValue = historicalPrices.get(tx.hash) || 0;
+        const usdValue = historicalUsdValue.toFixed(2);
+
+        return {
           hash: tx.hash,
           type: TransactionType.ETH_TRANSFER,
           from: tx.from,
           to: tx.to,
-          value: ethers.utils.formatEther(tx.value),
-          timestamp: parseInt(tx.timeStamp),
-          usdValue: "0", // Would need historical price data
+          value: ethValue,
+          timestamp,
+          usdValue,
           status:
             tx.isError === "0"
               ? TransactionStatus.SUCCESS
@@ -212,28 +262,39 @@ export class WalletService {
           blockNumber: parseInt(tx.blockNumber),
           gasUsed: tx.gasUsed,
           gasPrice: tx.gasPrice,
-        }))
-      );
+        };
+      });
 
-      // Add ERC-20 transfers
-      transactions.push(
-        ...tokenTxs.map((tx) => ({
+      // Process ERC-20 transfers
+      const tokenTransactions = tokenTxs.map((tx) => {
+        const timestamp = parseInt(tx.timeStamp);
+        const tokenValue = ethers.utils.formatUnits(
+          tx.value,
+          parseInt(tx.tokenDecimal)
+        );
+        const historicalUsdValue = historicalPrices.get(tx.hash) || 0;
+        const usdValue = historicalUsdValue.toFixed(2);
+
+        return {
           hash: tx.hash,
           type: TransactionType.ERC20_TRANSFER,
           from: tx.from,
           to: tx.to,
-          value: ethers.utils.formatUnits(tx.value, parseInt(tx.tokenDecimal)),
+          value: tokenValue,
           tokenSymbol: tx.tokenSymbol,
           tokenName: tx.tokenName,
           tokenAddress: tx.contractAddress,
-          timestamp: parseInt(tx.timeStamp),
-          usdValue: "0", // Would need historical price data
+          timestamp,
+          usdValue,
           status: TransactionStatus.SUCCESS, // Token transfers don't have isError field
           blockNumber: parseInt(tx.blockNumber),
           gasUsed: tx.gasUsed,
           gasPrice: tx.gasPrice,
-        }))
-      );
+        };
+      });
+
+      // Combine all transactions
+      transactions.push(...ethTransactions, ...tokenTransactions);
 
       // Sort by timestamp (descending)
       transactions.sort((a, b) => b.timestamp - a.timestamp);
