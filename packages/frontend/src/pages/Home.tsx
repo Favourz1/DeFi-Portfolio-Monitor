@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/Layout/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
 import { Search, X } from "lucide-react";
+import { PortfolioChart } from "@/components";
 
 /**
  * Home page component - main dashboard for the DeFi Portfolio Tracker
@@ -132,6 +133,7 @@ export function Home() {
         ) : (
           <div className="space-y-8">
             <PortfolioOverview address={address!} network={network} />
+            <PortfolioChart address={address!} network={network} />
             <TokenBalanceList address={address!} network={network} />
             <TransactionHistory address={address!} network={network} />
           </div>

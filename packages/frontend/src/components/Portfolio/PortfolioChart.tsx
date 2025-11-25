@@ -5,24 +5,14 @@ import { formatUSD, formatPercentage } from "@/utils/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, AlertCircle, TrendingUp } from "lucide-react";
-
-// Dynamic import for recharts to handle missing dependency gracefully
-let PieChartComponent: any = null;
-let Cell: any = null;
-let ResponsiveContainer: any = null;
-let Tooltip: any = null;
-let Legend: any = null;
-
-try {
-  const recharts = require("recharts");
-  PieChartComponent = recharts.PieChart;
-  Cell = recharts.Cell;
-  ResponsiveContainer = recharts.ResponsiveContainer;
-  Tooltip = recharts.Tooltip;
-  Legend = recharts.Legend;
-} catch (error) {
-  // Recharts not installed, will show fallback
-}
+import {
+  Pie,
+  PieChart as RechartsPieChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 interface PortfolioChartProps {
   address: string;
@@ -155,57 +145,6 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
     );
   }
 
-  // Fallback view if recharts is not available
-  if (!PieChartComponent) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PieChart className="h-5 w-5" />
-            Portfolio Distribution
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Install recharts for interactive chart view
-            </p>
-            {chartData.map((item, index) => {
-              const percentage = (item.value / totalValue) * 100;
-              return (
-                <div
-                  key={item.symbol}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <div>
-                      <p className="font-medium text-sm">{item.symbol}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.name}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">
-                      {formatUSD(item.value)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatPercentage(percentage)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // Recharts view
   return (
     <Card>
@@ -218,8 +157,8 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
       <CardContent>
         <div className="w-full h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChartComponent>
-              <PieChartComponent
+            <RechartsPieChart>
+              <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
@@ -231,7 +170,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                 {chartData.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
-              </PieChartComponent>
+              </Pie>
               <Tooltip
                 formatter={(value: number) => [formatUSD(value), "Value"]}
                 labelFormatter={(label: string) => `${label}`}
@@ -250,7 +189,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                   </span>
                 )}
               />
-            </PieChartComponent>
+            </RechartsPieChart>
           </ResponsiveContainer>
         </div>
 
