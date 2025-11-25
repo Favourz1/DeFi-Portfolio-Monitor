@@ -113,6 +113,7 @@ export function PortfolioOverview({
               onClick={() => refetch()}
               disabled={isFetching}
               variant="outline"
+              className="cursor-pointer"
             >
               {isFetching && (
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -161,6 +162,7 @@ export function PortfolioOverview({
             size="sm"
             onClick={() => refetch()}
             disabled={isFetching}
+            className="cursor-pointer"
           >
             {isFetching && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
             <RefreshCw className={`h-4 w-4 ${isFetching ? "hidden" : ""}`} />

@@ -71,13 +71,19 @@ export function TransactionFilters({
           defaultValue="all"
           disabled={isLoading}
         >
-          <SelectTrigger>
+          <SelectTrigger className="cursor-pointer">
             <SelectValue placeholder="Filter transactions" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Transactions</SelectItem>
-            <SelectItem value="sent">Sent</SelectItem>
-            <SelectItem value="received">Received</SelectItem>
+            <SelectItem value="all" className="cursor-pointer">
+              All Transactions
+            </SelectItem>
+            <SelectItem value="sent" className="cursor-pointer">
+              Sent
+            </SelectItem>
+            <SelectItem value="received" className="cursor-pointer">
+              Received
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

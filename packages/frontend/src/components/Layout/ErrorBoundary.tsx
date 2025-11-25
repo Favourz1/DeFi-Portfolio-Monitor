@@ -42,14 +42,14 @@ const DefaultErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({
           </p>
         </div>
         <div className="flex flex-col gap-2">
-          <Button onClick={retry} className="w-full">
+          <Button onClick={retry} className="w-full cursor-pointer">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
           <Button
             variant="outline"
             onClick={() => window.location.reload()}
-            className="w-full"
+            className="w-full cursor-pointer"
           >
             Reload Page
           </Button>

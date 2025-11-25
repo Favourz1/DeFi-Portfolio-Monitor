@@ -155,7 +155,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={cycleTheme}
       title={getLabel()}
-      className="relative"
+      className="relative cursor-pointer"
     >
       {getIcon()}
       <span className="sr-only">{getLabel()}</span>
@@ -197,7 +197,7 @@ export function ThemeSelector() {
             variant={theme === value ? "default" : "ghost"}
             size="sm"
             onClick={() => setTheme(value)}
-            className="rounded-none first:rounded-l-md last:rounded-r-md"
+            className="rounded-none first:rounded-l-md last:rounded-r-md cursor-pointer"
           >
             <Icon className="h-4 w-4 mr-1" />
             {label}

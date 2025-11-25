@@ -47,7 +47,7 @@ export function HooksExample() {
         <button
           onClick={connect}
           disabled={isConnecting}
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 cursor-pointer"
         >
           {isConnecting ? "Connecting..." : "Connect Wallet"}
         </button>
@@ -131,7 +131,7 @@ export function HooksExample() {
             {hasNextPage && (
               <button
                 onClick={() => fetchNextPage()}
-                className="px-4 py-2 bg-gray-500 text-white rounded"
+                className="px-4 py-2 bg-gray-500 text-white rounded cursor-pointer"
               >
                 Load More
               </button>

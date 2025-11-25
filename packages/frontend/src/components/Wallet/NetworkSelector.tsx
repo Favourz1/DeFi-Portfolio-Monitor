@@ -114,7 +114,7 @@ export function NetworkSelector() {
                 variant="outline"
                 onClick={() => handleNetworkChange("1")}
                 disabled={isSwitching}
-                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
+                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900 cursor-pointer"
               >
                 {isSwitching ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -127,7 +127,7 @@ export function NetworkSelector() {
                 variant="outline"
                 onClick={() => handleNetworkChange("11155111")}
                 disabled={isSwitching}
-                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
+                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900 cursor-pointer"
               >
                 {isSwitching ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -150,7 +150,7 @@ export function NetworkSelector() {
         onValueChange={handleNetworkChange}
         disabled={isSwitching}
       >
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-40 cursor-pointer">
           <SelectValue placeholder="Select network">
             {isSwitching ? (
               <div className="flex items-center gap-2">
@@ -185,14 +185,13 @@ export function NetworkSelector() {
                       )}
                       <span className="font-medium">{config.shortName}</span>
                     </div>
-                    {getNetworkBadge(supportedChainId)}
                   </div>
                   <div className="flex items-center gap-2">
                     {getNetworkStatus(supportedChainId)}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0"
+                      className="h-6 w-6 p-0 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         window.open(
@@ -265,7 +264,7 @@ export function NetworkSelectorCompact() {
       onValueChange={handleNetworkChange}
       disabled={isSwitching}
     >
-      <SelectTrigger className="w-32 h-8">
+      <SelectTrigger className="w-32 h-8 cursor-pointer">
         <SelectValue>
           {isSwitching ? (
             <div className="flex items-center gap-1">
@@ -349,7 +348,7 @@ export function NetworkInfo() {
           <Button
             variant="link"
             size="sm"
-            className="h-auto p-0 text-xs"
+            className="h-auto p-0 text-xs cursor-pointer"
             onClick={() =>
               window.open(config.blockExplorer, "_blank", "noopener,noreferrer")
             }

@@ -43,7 +43,7 @@ export default function App() {
         <ThemeProvider>
           <Home />
           <Toaster
-            position="top-right"
+            position="top-center"
             richColors
             closeButton
             duration={4000}

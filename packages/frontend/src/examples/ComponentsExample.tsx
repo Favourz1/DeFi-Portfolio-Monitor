@@ -71,6 +71,7 @@ export function ComponentsExample() {
                 <Button
                   onClick={() => setShouldError(!shouldError)}
                   variant={shouldError ? "destructive" : "default"}
+                  className="cursor-pointer"
                 >
                   {shouldError ? "Fix Error" : "Trigger Error"}
                 </Button>

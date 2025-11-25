@@ -169,12 +169,17 @@ export function TransactionItem({
             </div>
 
             {/* Block explorer link */}
-            <Button variant="ghost" size="sm" className="h-6 px-2 mt-1" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 mt-1 cursor-pointer"
+              asChild
+            >
               <a
                 href={getBlockExplorerUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 cursor-pointer"
               >
                 <ExternalLink className="h-3 w-3" />
                 <span className="text-xs">View</span>
@@ -185,12 +190,17 @@ export function TransactionItem({
 
         {/* Mobile: Block explorer link */}
         <div className="mt-3 sm:hidden">
-          <Button variant="outline" size="sm" className="w-full" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full cursor-pointer"
+            asChild
+          >
             <a
               href={getBlockExplorerUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 cursor-pointer"
             >
               <ExternalLink className="h-4 w-4" />
               View on Explorer

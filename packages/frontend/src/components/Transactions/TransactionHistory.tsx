@@ -80,7 +80,7 @@ export function TransactionHistory({
             size="sm"
             onClick={handleRefresh}
             disabled={isFetching}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             <RefreshCw
               className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
@@ -117,7 +117,11 @@ export function TransactionHistory({
                 ? error.message
                 : "There was an error loading your transaction history. Please try again."}
             </p>
-            <Button onClick={handleRefresh} variant="outline">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="cursor-pointer"
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
@@ -151,7 +155,7 @@ export function TransactionHistory({
             {(searchTerm || filterType !== "all") && (
               <Button
                 variant="outline"
-                className="mt-4"
+                className="mt-4 cursor-pointer"
                 onClick={() => {
                   setSearchTerm("");
                   setFilterType("all");
@@ -182,7 +186,7 @@ export function TransactionHistory({
                   variant="outline"
                   onClick={handleLoadMore}
                   disabled={isFetchingNextPage}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 cursor-pointer"
                 >
                   {isFetchingNextPage ? (
                     <>

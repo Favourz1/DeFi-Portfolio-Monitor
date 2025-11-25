@@ -85,13 +85,13 @@ export function WalletConnection() {
               variant="outline"
               size="sm"
               asChild
-              className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900"
+              className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900 cursor-pointer"
             >
               <a
                 href="https://metamask.io/download/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 cursor-pointer"
               >
                 Install
                 <ExternalLink className="h-3 w-3" />
@@ -124,7 +124,7 @@ export function WalletConnection() {
                     variant="ghost"
                     size="sm"
                     onClick={handleCopyAddress}
-                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
+                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 cursor-pointer"
                     title="Copy address"
                   >
                     {copied ? (
@@ -137,7 +137,7 @@ export function WalletConnection() {
                     variant="ghost"
                     size="sm"
                     onClick={handleViewOnExplorer}
-                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
+                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 cursor-pointer"
                     title="View on Etherscan"
                   >
                     <ExternalLink className="h-3 w-3" />
@@ -155,7 +155,7 @@ export function WalletConnection() {
           variant="outline"
           size="sm"
           onClick={handleDisconnect}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground cursor-pointer"
         >
           Disconnect
         </Button>
@@ -185,7 +185,12 @@ export function WalletConnection() {
           </CardContent>
         </Card>
 
-        <Button onClick={handleConnect} disabled={isConnecting} size="sm">
+        <Button
+          onClick={handleConnect}
+          disabled={isConnecting}
+          size="sm"
+          className="cursor-pointer"
+        >
           {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Retry
         </Button>
@@ -198,7 +203,7 @@ export function WalletConnection() {
     <Button
       onClick={handleConnect}
       disabled={isConnecting}
-      className="flex items-center gap-2"
+      className="flex items-center gap-2 cursor-pointer"
     >
       {isConnecting ? (
         <>
@@ -239,11 +244,12 @@ export function WalletConnectionCompact() {
 
   if (!isMetaMaskInstalled) {
     return (
-      <Button variant="outline" size="sm" asChild>
+      <Button variant="outline" size="sm" asChild className="cursor-pointer">
         <a
           href="https://metamask.io/download/"
           target="_blank"
           rel="noopener noreferrer"
+          className="cursor-pointer"
         >
           Install MetaMask
         </a>
@@ -261,7 +267,7 @@ export function WalletConnectionCompact() {
           variant="ghost"
           size="sm"
           onClick={disconnect}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground cursor-pointer"
         >
           Disconnect
         </Button>
@@ -270,7 +276,12 @@ export function WalletConnectionCompact() {
   }
 
   return (
-    <Button onClick={handleConnect} disabled={isConnecting} size="sm">
+    <Button
+      onClick={handleConnect}
+      disabled={isConnecting}
+      size="sm"
+      className="cursor-pointer"
+    >
       {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       <Wallet className="mr-2 h-4 w-4" />
       Connect
