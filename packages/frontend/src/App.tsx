@@ -1,84 +1,55 @@
-import { useState, useEffect } from "react";
-import "./App.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/Layout/ThemeProvider";
+import { Toaster } from "sonner";
+import { ErrorBoundary } from "@/components/Layout/ErrorBoundary";
+import { Home } from "@/pages/Home";
 
-function App() {
-  const [backendStatus, setBackendStatus] = useState<string>("Checking...");
+/**
+ * React Query client configuration
+ *
+ * @remarks
+ * Configured with optimized defaults:
+ * - 30s stale time for fresh data
+ * - 5min cache time for offline capability
+ * - No refetch on window focus to reduce API calls
+ * - 2 retries for resilience
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30000, // 30 seconds
+      gcTime: 300000, // 5 minutes (garbage collection time)
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  },
+});
 
-  useEffect(() => {
-    const testBackend = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/about");
-        const data = await response.json();
-        setBackendStatus(`✅ Backend connected: ${data.message}`);
-      } catch (error) {
-        setBackendStatus("❌ Backend not connected");
-      }
-    };
-
-    testBackend();
-  }, []);
-
+/**
+ * Main App component with all providers and global setup
+ *
+ * @remarks
+ * Sets up the application with:
+ * - Error boundary for React error catching
+ * - React Query for server state management
+ * - Theme provider for dark/light mode
+ * - Toast notifications
+ * - Main home page content
+ */
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>🔗 DeFi Portfolio Tracker</h1>
-        <p>Take-Home Challenge Template</p>
-
-        <div className="status-card">
-          <p>{backendStatus}</p>
-        </div>
-
-        <div className="info-card">
-          <h2>🚀 Ready to Build!</h2>
-          <p>This template provides:</p>
-          <ul>
-            <li>✅ NestJS backend running on port 3001</li>
-            <li>✅ React + Vite frontend running on port 5173</li>
-            <li>✅ TypeScript configuration</li>
-            <li>✅ Basic testing setup</li>
-          </ul>
-          <p>Now it's your turn to implement the DeFi portfolio tracker!</p>
-        </div>
-
-        <div className="requirements-card">
-          <h2>📋 What to Build</h2>
-          <div className="requirements">
-            <div className="requirement-section">
-              <h3>Frontend Requirements:</h3>
-              <ul>
-                <li>MetaMask wallet connection</li>
-                <li>Display token balances with USD values</li>
-                <li>Show transaction history</li>
-                <li>Calculate total portfolio value</li>
-                <li>Handle errors gracefully</li>
-              </ul>
-            </div>
-
-            <div className="requirement-section">
-              <h3>Backend Requirements:</h3>
-              <ul>
-                <li>API endpoints for wallet data</li>
-                <li>Integration with blockchain APIs</li>
-                <li>Data aggregation and formatting</li>
-                <li>Proper error handling</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="get-started-card">
-          <h2>🏁 Get Started</h2>
-          <p>
-            1. Check the task requirements in <code>CODE-CHALLENGE.md</code>
-          </p>
-          <p>
-            2. Read the <code>README.md</code> for setup details
-          </p>
-          <p>3. Start implementing!</p>
-        </div>
-      </header>
-    </div>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Home />
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={4000}
+          />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
-
-export default App;
