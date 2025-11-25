@@ -12,6 +12,8 @@ interface WalletActions {
   setConnecting: (isConnecting: boolean) => void;
   setError: (error: string | null) => void;
   setMetaMaskInstalled: (isInstalled: boolean) => void;
+  /** Set manual address input mode */
+  setManualMode: (isManual: boolean) => void;
   disconnect: () => void;
   /** Reset store to initial state */
   reset: () => void;
@@ -26,6 +28,7 @@ const initialState: WalletState = {
   isConnecting: false,
   error: null,
   isMetaMaskInstalled: false,
+  isManualMode: false,
 };
 
 /**
@@ -49,6 +52,8 @@ export const useWalletStore = create<WalletStore>((set) => ({
 
   setMetaMaskInstalled: (isMetaMaskInstalled: boolean) =>
     set({ isMetaMaskInstalled }),
+
+  setManualMode: (isManualMode: boolean) => set({ isManualMode }),
 
   disconnect: () => set({ ...initialState, isMetaMaskInstalled: true }),
 

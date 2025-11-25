@@ -15,6 +15,8 @@ export interface WalletState {
   isConnecting: boolean;
   error: string | null;
   isMetaMaskInstalled: boolean;
+  /** Whether in manual address input mode */
+  isManualMode: boolean;
 }
 
 /**

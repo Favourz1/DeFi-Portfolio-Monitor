@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useWalletStore } from "@/store/wallet.store";
 import { WalletService } from "@/services/web3/wallet.service";
 import { CHAIN_CONFIG } from "@/config/constants";
+import { normalizeEthereumAddress } from "@/utils/validation";
 
 /**
  * Custom hook for wallet management
@@ -92,6 +93,26 @@ export function useWallet() {
     }
   };
 
+  const setManualAddress = (address: string) => {
+    const normalizedAddress = normalizeEthereumAddress(address);
+    if (normalizedAddress) {
+      store.setAddress(normalizedAddress);
+      store.setManualMode(true);
+      store.setError(null);
+      // Set default chain ID for manual mode
+      store.setChainId(store.network === "mainnet" ? 1 : 11155111);
+    } else {
+      throw new Error("Invalid Ethereum address format");
+    }
+  };
+
+  const clearManualAddress = () => {
+    store.setAddress(null);
+    store.setManualMode(false);
+    store.setChainId(null);
+    store.setError(null);
+  };
+
   return {
     address: store.address,
     chainId: store.chainId,
@@ -99,9 +120,12 @@ export function useWallet() {
     isConnecting: store.isConnecting,
     error: store.error,
     isMetaMaskInstalled: store.isMetaMaskInstalled,
+    isManualMode: store.isManualMode,
     isConnected: store.address !== null,
     connect,
     disconnect: store.disconnect,
     switchNetwork,
+    setManualAddress,
+    clearManualAddress,
   };
 }

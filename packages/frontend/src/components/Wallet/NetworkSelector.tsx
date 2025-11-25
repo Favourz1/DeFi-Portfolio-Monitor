@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -187,7 +187,6 @@ export function NetworkSelector() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getNetworkStatus(supportedChainId)}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -302,9 +301,6 @@ export function NetworkSelectorCompact() {
                   <Zap className="h-3 w-3 text-orange-500" />
                 )}
                 <span>{config.shortName}</span>
-                {supportedChainId === chainId && (
-                  <CheckCircle className="h-3 w-3 text-green-500" />
-                )}
               </div>
             </SelectItem>
           );

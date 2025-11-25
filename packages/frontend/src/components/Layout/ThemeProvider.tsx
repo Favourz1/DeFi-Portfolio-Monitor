@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import React, { createContext, useEffect, useState } from "react";
+import {
+  ThemeProvider as NextThemesProvider,
+  useTheme as useNextTheme,
+} from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Monitor } from "lucide-react";
 
@@ -46,7 +49,7 @@ interface ThemeProviderProps {
  */
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "light",
   storageKey = "defi-tracker-theme",
   attribute = "class",
   enableSystem = true,
@@ -74,16 +77,7 @@ export function ThemeProvider({
  * @throws Error if used outside ThemeProvider
  */
 export function useTheme() {
-  const context = useContext(ThemeContext);
-
-  if (context === undefined) {
-    // Fallback to next-themes hook if context is not available
-    const { theme, setTheme, systemTheme, resolvedTheme } =
-      require("next-themes").useTheme();
-    return { theme, setTheme, systemTheme, resolvedTheme };
-  }
-
-  return context;
+  return useNextTheme();
 }
 
 /**
