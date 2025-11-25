@@ -12,10 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   AlertTriangle,
-  CheckCircle,
-  ExternalLink,
   Network,
   Zap,
+  ExternalLink,
 } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
 import { CHAIN_CONFIG, SUPPORTED_CHAINS } from "@/config/constants";
@@ -29,7 +28,7 @@ import { toast } from "sonner";
  * and loading states during network changes
  */
 export function NetworkSelector() {
-  const { chainId, network, switchNetwork, isConnected } = useWallet();
+  const { chainId, switchNetwork, isConnected } = useWallet();
   const [isSwitching, setIsSwitching] = useState(false);
 
   /**
@@ -52,40 +51,6 @@ export function NetworkSelector() {
     } finally {
       setIsSwitching(false);
     }
-  };
-
-  /**
-   * Get network status indicator
-   */
-  const getNetworkStatus = (targetChainId: number) => {
-    if (targetChainId === chainId) {
-      return <CheckCircle className="h-4 w-4 text-green-500" />;
-    }
-    return null;
-  };
-
-  /**
-   * Get network badge variant
-   */
-  const getNetworkBadge = (targetChainId: number) => {
-    if (targetChainId === 1) {
-      return (
-        <Badge
-          variant="default"
-          className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-        >
-          Mainnet
-        </Badge>
-      );
-    }
-    return (
-      <Badge
-        variant="secondary"
-        className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-      >
-        Testnet
-      </Badge>
-    );
   };
 
   // Don't show if wallet is not connected
@@ -185,24 +150,6 @@ export function NetworkSelector() {
                       )}
                       <span className="font-medium">{config.shortName}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(
-                          config.blockExplorer,
-                          "_blank",
-                          "noopener,noreferrer"
-                        );
-                      }}
-                      title="View block explorer"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
                   </div>
                 </div>
               </SelectItem>
@@ -314,7 +261,7 @@ export function NetworkSelectorCompact() {
  * Network information display component
  */
 export function NetworkInfo() {
-  const { chainId, network, isConnected } = useWallet();
+  const { chainId, isConnected } = useWallet();
 
   if (!isConnected || !chainId) {
     return null;
