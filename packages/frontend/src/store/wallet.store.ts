@@ -10,6 +10,8 @@ interface WalletActions {
   setChainId: (chainId: number | null) => void;
   setNetwork: (network: Network) => void;
   setConnecting: (isConnecting: boolean) => void;
+  setError: (error: string | null) => void;
+  setMetaMaskInstalled: (isInstalled: boolean) => void;
   disconnect: () => void;
   /** Reset store to initial state */
   reset: () => void;
