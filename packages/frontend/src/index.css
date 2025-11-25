@@ -1,11 +1,9 @@
-@import "tw-animate-css";
-
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
-@import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
 
 @layer base {
   :root {
