@@ -4,6 +4,12 @@ export * from "./Layout";
 // Wallet Components
 export * from "./Wallet";
 
+// Portfolio Components
+export * from "./Portfolio";
+
+// Token Components
+export * from "./Tokens";
+
 // UI Components (re-export shadcn components)
 export * from "./ui/button";
 export * from "./ui/card";
