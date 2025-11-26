@@ -1,71 +1,59 @@
 import { create } from "zustand";
-import { WalletState, Network } from "@/types/wallet.types";
+import { Network } from "@/types/wallet.types";
 
 /**
- * Wallet store actions
+ * Simplified wallet store for manual address mode
+ *
+ * @remarks
+ * With RainbowKit/Wagmi, most wallet state is managed by those libraries.
+ * This store now only handles the "manual address input" feature for viewing
+ * portfolios without connecting a wallet.
  */
-interface WalletActions {
-  /** Connect MetaMask wallet */
-  setAddress: (address: string | null) => void;
-  setChainId: (chainId: number | null) => void;
-  setNetwork: (network: Network) => void;
-  setConnecting: (isConnecting: boolean) => void;
-  setError: (error: string | null) => void;
-  setMetaMaskInstalled: (isInstalled: boolean) => void;
-  /** Set manual address input mode */
-  setManualMode: (isManual: boolean) => void;
-  disconnect: () => void;
-  /** Reset store to initial state */
-  reset: () => void;
+
+interface ManualAddressState {
+  address: string | null;
+  isManualMode: boolean;
+  network: Network;
 }
 
-type WalletStore = WalletState & WalletActions;
+interface ManualAddressActions {
+  setManualAddress: (address: string) => void;
+  clearManualAddress: () => void;
+  setNetwork: (network: Network) => void;
+}
 
-const initialState: WalletState = {
+type WalletStore = ManualAddressState & ManualAddressActions;
+
+const initialState: ManualAddressState = {
   address: null,
-  chainId: null,
-  network: "mainnet",
-  isConnecting: false,
-  error: null,
-  isMetaMaskInstalled: false,
   isManualMode: false,
+  network: "mainnet",
 };
 
 /**
- * Zustand store for wallet state management
+ * Zustand store for manual address feature
  *
  * @remarks
- * Manages wallet connection state, account info, and network
+ * Only manages manual address input state. Wallet connection state
+ * is now handled by Wagmi/RainbowKit hooks.
  */
 export const useWalletStore = create<WalletStore>((set) => ({
   ...initialState,
 
-  setAddress: (address) => set({ address, error: null }),
+  setManualAddress: (address: string) =>
+    set({
+      address,
+      isManualMode: true,
+    }),
 
-  setChainId: (chainId) => set({ chainId }),
+  clearManualAddress: () =>
+    set({
+      address: null,
+      isManualMode: false,
+    }),
 
-  setNetwork: (network) => set({ network }),
-
-  setConnecting: (isConnecting) => set({ isConnecting }),
-
-  setError: (error: string | null) => set({ error, isConnecting: false }),
-
-  setMetaMaskInstalled: (isMetaMaskInstalled: boolean) =>
-    set({ isMetaMaskInstalled }),
-
-  setManualMode: (isManualMode: boolean) => set({ isManualMode }),
-
-  disconnect: () => set({ ...initialState, isMetaMaskInstalled: true }),
-
-  reset: () => set(initialState),
+  setNetwork: (network: Network) =>
+    set({
+      network,
+    }),
 }));
-
-/**
- * Selectors for derived state
- */
-export const walletSelectors = {
-  isConnected: (state: WalletStore) => state.address !== null,
-  hasError: (state: WalletStore) => state.error !== null,
-  canConnect: (state: WalletStore) =>
-    state.isMetaMaskInstalled && !state.isConnecting && state.address === null,
-};

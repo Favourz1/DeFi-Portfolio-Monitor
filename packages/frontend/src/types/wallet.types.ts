@@ -5,17 +5,18 @@ export type Network = "mainnet" | "sepolia";
 
 /**
  * Wallet connection state
+ *
+ * @remarks
+ * With RainbowKit/Wagmi, most of this state is managed by those libraries.
+ * This interface is kept for backward compatibility with existing components.
  */
 export interface WalletState {
-  /** Connected wallet address (null if not connected) */
   address: string | null;
-  /** Current chain ID */
   chainId: number | null;
   network: Network;
   isConnecting: boolean;
   error: string | null;
   isMetaMaskInstalled: boolean;
-  /** Whether in manual address input mode */
   isManualMode: boolean;
 }
 

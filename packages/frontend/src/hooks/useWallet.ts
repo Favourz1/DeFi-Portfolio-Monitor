@@ -1,131 +1,135 @@
-import { useEffect } from "react";
+import { useAccount, useChainId, useSwitchChain, useDisconnect } from "wagmi";
+import { mainnet } from "wagmi/chains";
 import { useWalletStore } from "@/store/wallet.store";
-import { WalletService } from "@/services/web3/wallet.service";
-import { CHAIN_CONFIG } from "@/config/constants";
+import { Network } from "@/types/wallet.types";
 import { normalizeEthereumAddress } from "@/utils/validation";
 
 /**
- * Custom hook for wallet management
+ * Custom hook for wallet management with Wagmi
+ *
+ * @remarks
+ * Wraps Wagmi hooks and provides a consistent interface for the app.
+ * Combines Wagmi wallet state with manual address mode for viewing portfolios
+ * without connecting a wallet.
  *
  * @returns Wallet state and actions
  */
 export function useWallet() {
-  const store = useWalletStore();
+  // Wagmi hooks for wallet connection state
+  const { address: wagmiAddress, isConnected: wagmiIsConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
 
-  // Check MetaMask installation on mount
-  useEffect(() => {
-    const isInstalled = WalletService.isMetaMaskInstalled();
-    store.setMetaMaskInstalled(isInstalled);
+  // Manual address mode (for viewing portfolios without connecting wallet)
+  const {
+    address: manualAddress,
+    isManualMode,
+    setManualAddress: setManualAddressStore,
+    clearManualAddress: clearManual,
+    network: manualNetwork,
+    setNetwork: setNetworkStore,
+  } = useWalletStore();
 
-    if (!isInstalled) return;
+  /**
+   * Get the current effective address (Wagmi wallet address or manual address)
+   */
+  const address = wagmiIsConnected ? wagmiAddress : manualAddress;
 
-    // Check if already connected
-    WalletService.getCurrentAccount().then((account) => {
-      if (account) {
-        WalletService.getChainId().then((chainId) => {
-          store.setAddress(account);
-          store.setChainId(chainId);
+  /**
+   * Check if connected (either via wallet or manual mode)
+   */
+  const isConnected = wagmiIsConnected || isManualMode;
 
-          const network = chainId === 1 ? "mainnet" : "sepolia";
-          store.setNetwork(network);
-        });
-      }
-    });
+  /**
+   * Map chainId to network
+   * When in manual mode, use the manual network; otherwise use Wagmi chainId
+   */
+  const network: Network =
+    isManualMode && !wagmiIsConnected
+      ? manualNetwork
+      : chainId === mainnet.id
+        ? "mainnet"
+        : "sepolia";
 
-    // Listen for account changes
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length === 0) {
-        store.disconnect();
-      } else {
-        store.setAddress(accounts[0]);
-      }
-    };
-
-    // Listen for network changes
-    const handleChainChanged = (chainIdHex: string) => {
-      const chainId = parseInt(chainIdHex, 16);
-      store.setChainId(chainId);
-
-      const network =
-        CHAIN_CONFIG[chainId as keyof typeof CHAIN_CONFIG]?.networkId ||
-        "mainnet";
-      store.setNetwork(network);
-
-      // Reload to clear stale data
-      window.location.reload();
-    };
-
-    WalletService.onAccountsChanged(handleAccountsChanged);
-    WalletService.onChainChanged(handleChainChanged);
-
-    return () => {
-      WalletService.removeAccountsChangedListener(handleAccountsChanged);
-      WalletService.removeChainChangedListener(handleChainChanged);
-    };
-  }, []);
-
-  const connect = async () => {
-    store.setConnecting(true);
-    store.setError(null);
-
-    try {
-      const { address, chainId } = await WalletService.connect();
-      store.setAddress(address);
-      store.setChainId(chainId);
-
-      const network = chainId === 1 ? "mainnet" : "sepolia";
-      store.setNetwork(network);
-    } catch (error: any) {
-      store.setError(error.message);
-      throw error;
-    } finally {
-      store.setConnecting(false);
+  /**
+   * Switch network handler
+   */
+  const switchNetwork = async (targetChainId: number) => {
+    if (!wagmiIsConnected) {
+      throw new Error("Wallet not connected");
     }
-  };
 
-  const switchNetwork = async (chainId: number) => {
     try {
-      await WalletService.switchNetwork(chainId);
-      // The chain change event will handle updating the store
+      await switchChain({ chainId: targetChainId });
     } catch (error: any) {
-      store.setError(error.message);
+      // Handle user rejection
+      if (error.code === 4001) {
+        throw new Error("Network switch rejected");
+      }
       throw error;
     }
   };
 
+  /**
+   * Disconnect wallet handler
+   */
+  const disconnect = () => {
+    if (wagmiIsConnected) {
+      wagmiDisconnect();
+    }
+    if (isManualMode) {
+      clearManual();
+    }
+  };
+
+  /**
+   * Set manual address with validation
+   */
   const setManualAddress = (address: string) => {
     const normalizedAddress = normalizeEthereumAddress(address);
     if (normalizedAddress) {
-      store.setAddress(normalizedAddress);
-      store.setManualMode(true);
-      store.setError(null);
-      // Set default chain ID for manual mode
-      store.setChainId(store.network === "mainnet" ? 1 : 11155111);
+      setManualAddressStore(normalizedAddress);
+      // Set network based on current chainId if wallet is connected, otherwise keep manual network
+      if (!wagmiIsConnected) {
+        // In manual mode, default to mainnet if not set
+        if (!manualNetwork) {
+          setNetworkStore("mainnet");
+        }
+      }
     } else {
       throw new Error("Invalid Ethereum address format");
     }
   };
 
+  /**
+   * Clear manual address
+   */
   const clearManualAddress = () => {
-    store.setAddress(null);
-    store.setManualMode(false);
-    store.setChainId(null);
-    store.setError(null);
+    clearManual();
   };
 
   return {
-    address: store.address,
-    chainId: store.chainId,
-    network: store.network,
-    isConnecting: store.isConnecting,
-    error: store.error,
-    isMetaMaskInstalled: store.isMetaMaskInstalled,
-    isManualMode: store.isManualMode,
-    isConnected: store.address !== null,
-    connect,
-    disconnect: store.disconnect,
+    // Address state
+    address: address as string | null,
+    chainId: wagmiIsConnected ? chainId : null,
+    network,
+    isConnected,
+    isManualMode,
+
+    // Wagmi-specific states
+    isWalletConnected: wagmiIsConnected,
+    isSwitchingChain,
+
+    // Actions
     switchNetwork,
+    disconnect,
     setManualAddress,
     clearManualAddress,
+
+    // Legacy compatibility (for components that check these)
+    isConnecting: false, // RainbowKit handles this internally
+    error: null, // RainbowKit handles errors internally
+    isMetaMaskInstalled: true, // Not needed with RainbowKit
   };
 }
