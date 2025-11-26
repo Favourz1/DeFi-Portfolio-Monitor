@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -12,44 +11,45 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   AlertTriangle,
-  Network,
+  Network as NetworkIcon,
   Zap,
-  ExternalLink,
 } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
-import { CHAIN_CONFIG, SUPPORTED_CHAINS } from "@/config/constants";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { mainnet, sepolia } from "wagmi/chains";
+import { SUPPORTED_CHAINS } from "@/config/constants";
 import { toast } from "sonner";
 
 /**
- * Network selector component for switching between mainnet and sepolia
+ * Network selector component using Wagmi
  *
  * @remarks
- * Uses shadcn Select component with network switching functionality
- * and loading states during network changes
+ * Uses Wagmi's useSwitchChain hook for network switching.
+ * Automatically handles loading states and errors.
  */
 export function NetworkSelector() {
-  const { chainId, switchNetwork, isConnected } = useWallet();
-  const [isSwitching, setIsSwitching] = useState(false);
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain, isPending } = useSwitchChain();
 
   /**
-   * Handle network switching with error handling
+   * Handle network switching
    */
-  const handleNetworkChange = async (newChainId: string) => {
-    const targetChainId = parseInt(newChainId, 10);
+  const handleNetworkChange = async (newChainIdStr: string) => {
+    const targetChainId = parseInt(newChainIdStr, 10);
 
     if (targetChainId === chainId) return;
 
-    setIsSwitching(true);
-
     try {
-      await switchNetwork(targetChainId);
-      const networkName =
-        CHAIN_CONFIG[targetChainId as keyof typeof CHAIN_CONFIG]?.shortName;
+      await switchChain({ chainId: targetChainId });
+      const networkName = targetChainId === mainnet.id ? "Mainnet" : "Sepolia";
       toast.success(`Switched to ${networkName}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to switch network");
-    } finally {
-      setIsSwitching(false);
+      // User rejected the switch
+      if (error.code === 4001 || error.message?.includes("User rejected")) {
+        toast.error("Network switch rejected");
+      } else {
+        toast.error(error.message || "Failed to switch network");
+      }
     }
   };
 
@@ -77,11 +77,11 @@ export function NetworkSelector() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => handleNetworkChange("1")}
-                disabled={isSwitching}
+                onClick={() => handleNetworkChange(mainnet.id.toString())}
+                disabled={isPending}
                 className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900 cursor-pointer"
               >
-                {isSwitching ? (
+                {isPending ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   "Mainnet"
@@ -90,11 +90,11 @@ export function NetworkSelector() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => handleNetworkChange("11155111")}
-                disabled={isSwitching}
+                onClick={() => handleNetworkChange(sepolia.id.toString())}
+                disabled={isPending}
                 className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900 cursor-pointer"
               >
-                {isSwitching ? (
+                {isPending ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   "Sepolia"
@@ -108,53 +108,40 @@ export function NetworkSelector() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Network className="h-4 w-4 text-muted-foreground" />
+    <div className="hidden! items-center gap-2">
+      <NetworkIcon className="h-4 w-4 text-muted-foreground" />
       <Select
         value={chainId?.toString() || ""}
         onValueChange={handleNetworkChange}
-        disabled={isSwitching}
+        disabled={isPending}
       >
         <SelectTrigger className="w-40 cursor-pointer">
           <SelectValue placeholder="Select network">
-            {isSwitching ? (
+            {isPending ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>Switching...</span>
               </div>
+            ) : chainId === mainnet.id ? (
+              "Mainnet"
             ) : (
-              chainId &&
-              CHAIN_CONFIG[chainId as keyof typeof CHAIN_CONFIG]?.shortName
+              "Sepolia"
             )}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {SUPPORTED_CHAINS.map((supportedChainId: number) => {
-            const config =
-              CHAIN_CONFIG[supportedChainId as keyof typeof CHAIN_CONFIG];
-            if (!config) return null;
-
-            return (
-              <SelectItem
-                key={supportedChainId}
-                value={supportedChainId.toString()}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      {supportedChainId === 1 ? (
-                        <Zap className="h-4 w-4 text-blue-500" />
-                      ) : (
-                        <Zap className="h-4 w-4 text-orange-500" />
-                      )}
-                      <span className="font-medium">{config.shortName}</span>
-                    </div>
-                  </div>
-                </div>
-              </SelectItem>
-            );
-          })}
+          <SelectItem value={mainnet.id.toString()} className="cursor-pointer">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-blue-500" />
+              <span>Mainnet</span>
+            </div>
+          </SelectItem>
+          <SelectItem value={sepolia.id.toString()} className="cursor-pointer">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-orange-500" />
+              <span>Sepolia</span>
+            </div>
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -162,28 +149,21 @@ export function NetworkSelector() {
 }
 
 /**
- * Compact network selector for use in headers
+ * Compact network selector for headers
  */
 export function NetworkSelectorCompact() {
-  const { chainId, switchNetwork, isConnected } = useWallet();
-  const [isSwitching, setIsSwitching] = useState(false);
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain, isPending } = useSwitchChain();
 
-  const handleNetworkChange = async (newChainId: string) => {
-    const targetChainId = parseInt(newChainId, 10);
-
+  const handleNetworkChange = async (newChainIdStr: string) => {
+    const targetChainId = parseInt(newChainIdStr, 10);
     if (targetChainId === chainId) return;
 
-    setIsSwitching(true);
-
     try {
-      await switchNetwork(targetChainId);
-      const networkName =
-        CHAIN_CONFIG[targetChainId as keyof typeof CHAIN_CONFIG]?.shortName;
-      toast.success(`Switched to ${networkName}`);
+      await switchChain({ chainId: targetChainId });
     } catch (error: any) {
       toast.error(error.message || "Failed to switch network");
-    } finally {
-      setIsSwitching(false);
     }
   };
 
@@ -191,7 +171,6 @@ export function NetworkSelectorCompact() {
     return null;
   }
 
-  // Show unsupported network as button
   if (chainId && !SUPPORTED_CHAINS.includes(chainId)) {
     return (
       <Badge variant="destructive" className="cursor-pointer">
@@ -200,131 +179,99 @@ export function NetworkSelectorCompact() {
     );
   }
 
-  const currentConfig = chainId
-    ? CHAIN_CONFIG[chainId as keyof typeof CHAIN_CONFIG]
-    : null;
-
   return (
     <Select
       value={chainId?.toString() || ""}
       onValueChange={handleNetworkChange}
-      disabled={isSwitching}
+      disabled={isPending}
     >
       <SelectTrigger className="w-32 h-8 cursor-pointer">
         <SelectValue>
-          {isSwitching ? (
+          {isPending ? (
             <div className="flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span className="text-xs">Switching</span>
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              {chainId === 1 ? (
+              {chainId === mainnet.id ? (
                 <Zap className="h-3 w-3 text-blue-500" />
               ) : (
                 <Zap className="h-3 w-3 text-orange-500" />
               )}
-              <span className="text-xs">{currentConfig?.shortName}</span>
+              <span className="text-xs">
+                {chainId === mainnet.id ? "Mainnet" : "Sepolia"}
+              </span>
             </div>
           )}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {SUPPORTED_CHAINS.map((supportedChainId: number) => {
-          const config =
-            CHAIN_CONFIG[supportedChainId as keyof typeof CHAIN_CONFIG];
-          if (!config) return null;
-
-          return (
-            <SelectItem
-              key={supportedChainId}
-              value={supportedChainId.toString()}
-              className="cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                {supportedChainId === 1 ? (
-                  <Zap className="h-3 w-3 text-blue-500" />
-                ) : (
-                  <Zap className="h-3 w-3 text-orange-500" />
-                )}
-                <span>{config.shortName}</span>
-              </div>
-            </SelectItem>
-          );
-        })}
+        <SelectItem value={mainnet.id.toString()} className="cursor-pointer">
+          <div className="flex items-center gap-2">
+            <Zap className="h-3 w-3 text-blue-500" />
+            <span>Mainnet</span>
+          </div>
+        </SelectItem>
+        <SelectItem value={sepolia.id.toString()} className="cursor-pointer">
+          <div className="flex items-center gap-2">
+            <Zap className="h-3 w-3 text-orange-500" />
+            <span>Sepolia</span>
+          </div>
+        </SelectItem>
       </SelectContent>
     </Select>
   );
 }
 
 /**
- * Network information display component
+ * Network information display
  */
 export function NetworkInfo() {
-  const { chainId, isConnected } = useWallet();
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
 
   if (!isConnected || !chainId) {
     return null;
   }
 
-  const config = CHAIN_CONFIG[chainId as keyof typeof CHAIN_CONFIG];
-
-  if (!config) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        Unknown network (Chain ID: {chainId})
-      </div>
-    );
-  }
+  const isMainnet = chainId === mainnet.id;
+  const explorerUrl = isMainnet
+    ? "https://etherscan.io"
+    : "https://sepolia.etherscan.io";
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Network:</span>
-        {getNetworkBadge(chainId)}
+        {isMainnet ? (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            Mainnet
+          </Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+          >
+            Testnet
+          </Badge>
+        )}
       </div>
       <div className="text-xs text-muted-foreground space-y-1">
-        <div>Chain ID: {config.chainId}</div>
-        <div>Currency: {config.nativeCurrency.symbol}</div>
+        <div>Chain ID: {chainId}</div>
+        <div>Currency: ETH</div>
         <div className="flex items-center gap-1">
           Explorer:
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto p-0 text-xs cursor-pointer"
-            onClick={() =>
-              window.open(config.blockExplorer, "_blank", "noopener,noreferrer")
-            }
+          <a
+            href={explorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
           >
-            {config.blockExplorer.replace("https://", "")}
-            <ExternalLink className="ml-1 h-3 w-3" />
-          </Button>
+            {explorerUrl.replace("https://", "")}
+          </a>
         </div>
       </div>
     </div>
-  );
-}
-
-/**
- * Helper function to get network badge
- */
-function getNetworkBadge(chainId: number) {
-  if (chainId === 1) {
-    return (
-      <Badge
-        variant="default"
-        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-      >
-        Mainnet
-      </Badge>
-    );
-  }
-  return (
-    <Badge
-      variant="secondary"
-      className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-    >
-      Testnet
-    </Badge>
   );
 }
