@@ -154,7 +154,7 @@ export function TokenBalanceList({ address, network }: TokenBalanceListProps) {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {sortedTokensWithEth.map((token, index) => (
           <TokenBalanceItem
             key={token.contractAddress}
