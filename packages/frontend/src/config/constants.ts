@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_APP_NAME?: string;
   readonly VITE_SUPPORTED_CHAINS?: string;
+  readonly VITE_WALLETCONNECT_PROJECT_ID?: string;
 }
 
 interface ImportMeta {
@@ -25,6 +26,9 @@ export const SUPPORTED_CHAINS = (
 )
   .split(",")
   .map(Number);
+
+export const WALLETCONNECT_PROJECT_ID = import.meta.env
+  .VITE_WALLETCONNECT_PROJECT_ID;
 
 export const CHAIN_CONFIG = {
   1: {
