@@ -16,6 +16,17 @@ export default defineConfig({
       "@/utils": path.resolve(__dirname, "./src/utils"),
       "@/config": path.resolve(__dirname, "./src/config"),
       "@/lib": path.resolve(__dirname, "./src/lib"),
+      buffer: "buffer",
+    },
+  },
+  define: {
+    global: "globalThis",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
     },
   },
   server: {

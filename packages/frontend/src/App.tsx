@@ -38,8 +38,8 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <ErrorBoundary>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
           <ThemeProvider>
             <RainbowKitWithTheme>
               <Home />
@@ -51,8 +51,8 @@ export default function App() {
               />
             </RainbowKitWithTheme>
           </ThemeProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+        </WagmiProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

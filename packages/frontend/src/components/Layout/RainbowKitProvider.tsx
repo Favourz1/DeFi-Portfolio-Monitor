@@ -4,26 +4,27 @@ import {
   darkTheme,
   lightTheme,
 } from "@rainbow-me/rainbowkit";
-import { useTheme } from "./ThemeProvider";
+import { useTheme } from "next-themes";
 
 /**
  * RainbowKit wrapper with theme integration
  *
  * @remarks
- * Needs to be inside ThemeProvider to access theme context.
+ * Needs to be inside ThemeProvider (next-themes) to access theme context.
  * Applies appropriate RainbowKit theme based on app's current theme.
+ * Must be inside WagmiProvider for RainbowKit to work properly.
  */
 export function RainbowKitWithTheme({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   return (
     <RainbowKitProvider
       theme={
-        theme === "dark"
+        resolvedTheme === "dark"
           ? darkTheme({
               accentColor: "#0E76FD",
               accentColorForeground: "white",

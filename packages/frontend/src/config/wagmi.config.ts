@@ -21,15 +21,20 @@ export const config = createConfig({
     injected({
       target: "metaMask",
     }),
-    walletConnect({
-      projectId: WALLETCONNECT_PROJECT_ID,
-      metadata: {
-        name: "DeFi Portfolio Tracker",
-        description: "Track your DeFi portfolio across networks",
-        url: "https://defi-portfolio.com",
-        icons: ["https://defi-portfolio.com/icon.png"],
-      },
-    }),
+    // Only include WalletConnect if project ID is provided
+    ...(WALLETCONNECT_PROJECT_ID
+      ? [
+          walletConnect({
+            projectId: WALLETCONNECT_PROJECT_ID,
+            metadata: {
+              name: "DeFi Portfolio Tracker",
+              description: "Track your DeFi portfolio across networks",
+              url: "https://defi-portfolio.com",
+              icons: ["https://defi-portfolio.com/icon.png"],
+            },
+          }),
+        ]
+      : []),
     coinbaseWallet({
       appName: "DeFi Portfolio Tracker",
     }),
