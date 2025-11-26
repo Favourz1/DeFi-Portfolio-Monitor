@@ -1,8 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/components/Layout/ThemeProvider";
+import { WagmiProvider } from "wagmi";
+import { ThemeProvider, RainbowKitWithTheme } from "@/components/Layout";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/Layout/ErrorBoundary";
 import { Home } from "@/pages/Home";
+import { config } from "@/config/wagmi.config";
+
+// Import RainbowKit styles
+import "@rainbow-me/rainbowkit/styles.css";
 
 /**
  * React Query client configuration
@@ -29,27 +34,25 @@ const queryClient = new QueryClient({
  * Main App component with all providers and global setup
  *
  * @remarks
- * Sets up the application with:
- * - Error boundary for React error catching
- * - React Query for server state management
- * - Theme provider for dark/light mode
- * - Toast notifications
- * - Main home page content
  */
 export default function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <Home />
-          <Toaster
-            position="top-center"
-            richColors
-            closeButton
-            duration={4000}
-          />
-        </ThemeProvider>
-      </QueryClientProvider>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <RainbowKitWithTheme>
+              <Home />
+              <Toaster
+                position="top-center"
+                richColors
+                closeButton
+                duration={4000}
+              />
+            </RainbowKitWithTheme>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </ErrorBoundary>
   );
 }

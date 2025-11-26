@@ -6,3 +6,4 @@ export {
   ThemeSelector,
   ThemeStatus,
 } from "./ThemeProvider";
+export { RainbowKitWithTheme } from "./RainbowKitProvider";
