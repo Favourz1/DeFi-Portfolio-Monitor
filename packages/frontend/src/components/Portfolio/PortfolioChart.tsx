@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { cn } from "@/lib/utils";
 
 interface PortfolioChartProps {
   address: string;
@@ -172,16 +173,11 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number) => [formatUSD(value), "Value"]}
-                labelFormatter={(label: string) => `${label}`}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
+                content={<CustomTooltip totalValue={totalValue} />}
+                cursor={{ fill: "transparent" }}
               />
               <Legend
-                formatter={(value: string, entry: any) => (
+                formatter={(_value: string, entry: any) => (
                   <span style={{ color: entry.color }}>
                     {entry.payload.symbol} (
                     {formatPercentage((entry.payload.value / totalValue) * 100)}
@@ -217,6 +213,57 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
     </Card>
   );
 }
+
+const CustomTooltip = (props: any) => {
+  const { active, payload, totalValue } = props;
+
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+
+  const data = payload[0]?.payload;
+  if (!data) return null;
+
+  const value = data.value as number;
+  const percentage = (value / totalValue) * 100;
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-lg",
+        "p-3 min-w-[180px]",
+        "backdrop-blur-sm"
+      )}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <div
+          className="w-3 h-3 rounded-full shrink-0"
+          style={{ backgroundColor: data.color }}
+        />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{data.symbol}</p>
+          {data.name !== data.symbol && (
+            <p className="text-xs text-muted-foreground truncate">
+              {data.name}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="space-y-1 pt-2 border-t">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Value</span>
+          <span className="text-sm font-semibold">{formatUSD(value)}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Percentage</span>
+          <span className="text-sm font-medium">
+            {formatPercentage(percentage)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Dark mode compatible color palette
 const CHART_COLORS = [
