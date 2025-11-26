@@ -18,19 +18,24 @@ describe("TransactionHistory", () => {
 
   it("should render loading skeleton when loading", () => {
     vi.spyOn(useTransactions, "useTransactions").mockReturnValue({
-      data: {
-        pages: [],
-        pageParams: [],
-      },
+      data: undefined,
       isLoading: true,
+      isPending: true,
       error: null,
       fetchNextPage: vi.fn(),
       hasNextPage: false,
       isFetching: false,
       isFetchingNextPage: false,
       isError: false,
+      isSuccess: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      status: "pending" as const,
+      fetchStatus: "fetching" as const,
       refetch: vi.fn(),
-    });
+      isRefetching: false,
+      isInitialLoading: true,
+    } as any);
 
     render(<TransactionHistory address={mockAddress} network={mockNetwork} />);
 
@@ -44,19 +49,24 @@ describe("TransactionHistory", () => {
     const mockError = new Error("Failed to fetch");
 
     vi.spyOn(useTransactions, "useTransactions").mockReturnValue({
-      data: {
-        pages: [],
-        pageParams: [],
-      },
+      data: undefined,
       isLoading: false,
+      isPending: false,
       error: mockError,
       fetchNextPage: vi.fn(),
       hasNextPage: false,
       isFetching: false,
       isFetchingNextPage: false,
       isError: true,
+      isSuccess: false,
+      isLoadingError: true,
+      isRefetchError: false,
+      status: "error" as const,
+      fetchStatus: "idle" as const,
       refetch: mockRefetch,
-    });
+      isRefetching: false,
+      isInitialLoading: false,
+    } as any);
 
     render(<TransactionHistory address={mockAddress} network={mockNetwork} />);
 
@@ -74,6 +84,8 @@ describe("TransactionHistory", () => {
       data: {
         pages: [
           {
+            address: mockAddress,
+            network: mockNetwork,
             transactions: [],
             pagination: { total: 0, limit: 20, offset: 0, hasMore: false },
           },
@@ -81,14 +93,22 @@ describe("TransactionHistory", () => {
         pageParams: [],
       },
       isLoading: false,
+      isPending: false,
       error: null,
       fetchNextPage: vi.fn(),
       hasNextPage: false,
       isFetching: false,
       isFetchingNextPage: false,
       isError: false,
+      isSuccess: true,
+      isLoadingError: false,
+      isRefetchError: false,
+      status: "success" as const,
+      fetchStatus: "idle" as const,
       refetch: vi.fn(),
-    });
+      isRefetching: false,
+      isInitialLoading: false,
+    } as any);
 
     render(<TransactionHistory address={mockAddress} network={mockNetwork} />);
 
@@ -106,6 +126,9 @@ describe("TransactionHistory", () => {
         timestamp: Math.floor(Date.now() / 1000),
         usdValue: "2000.00",
         status: "success" as const,
+        blockNumber: 12345678,
+        gasUsed: "21000",
+        gasPrice: "20000000000",
       },
     ];
 
@@ -113,6 +136,8 @@ describe("TransactionHistory", () => {
       data: {
         pages: [
           {
+            address: mockAddress,
+            network: mockNetwork,
             transactions: mockTransactions,
             pagination: { total: 1, limit: 20, offset: 0, hasMore: false },
           },
@@ -120,14 +145,22 @@ describe("TransactionHistory", () => {
         pageParams: [],
       },
       isLoading: false,
+      isPending: false,
       error: null,
       fetchNextPage: vi.fn(),
       hasNextPage: false,
       isFetching: false,
       isFetchingNextPage: false,
       isError: false,
+      isSuccess: true,
+      isLoadingError: false,
+      isRefetchError: false,
+      status: "success" as const,
+      fetchStatus: "idle" as const,
       refetch: vi.fn(),
-    });
+      isRefetching: false,
+      isInitialLoading: false,
+    } as any);
 
     render(<TransactionHistory address={mockAddress} network={mockNetwork} />);
 
@@ -143,6 +176,8 @@ describe("TransactionHistory", () => {
       data: {
         pages: [
           {
+            address: mockAddress,
+            network: mockNetwork,
             transactions: [],
             pagination: { total: 0, limit: 20, offset: 0, hasMore: false },
           },
@@ -150,14 +185,22 @@ describe("TransactionHistory", () => {
         pageParams: [],
       },
       isLoading: false,
+      isPending: false,
       error: null,
       fetchNextPage: mockFetchNextPage,
       hasNextPage: false,
       isFetching: false,
       isFetchingNextPage: false,
       isError: false,
+      isSuccess: true,
+      isLoadingError: false,
+      isRefetchError: false,
+      status: "success" as const,
+      fetchStatus: "idle" as const,
       refetch: vi.fn(),
-    });
+      isRefetching: false,
+      isInitialLoading: false,
+    } as any);
 
     render(<TransactionHistory address={mockAddress} network={mockNetwork} />);
 
