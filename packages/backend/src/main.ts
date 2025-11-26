@@ -1,10 +1,19 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
+import { Request, Response, NextFunction } from "express";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/common/filters/http-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Redirect root path to /api/v1/about
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path === "/") {
+      return res.redirect(301, "/api/v1/about");
+    }
+    next();
+  });
 
   // Global prefix for API versioning
   app.setGlobalPrefix("api/v1");

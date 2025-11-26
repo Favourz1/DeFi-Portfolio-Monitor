@@ -16,7 +16,8 @@ export class AppController {
     return {
       message: "DeFi Portfolio Tracker API is running!",
       version: "1.0.0",
-      description: "Backend template for the take-home challenge",
+      description:
+        "Fully developed backend API for DeFi portfolio tracking, aggregating and serving on-chain portfolio data.",
       timestamp: new Date().toISOString(),
     };
   }
