@@ -167,6 +167,10 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                 outerRadius={120}
                 paddingAngle={2}
                 dataKey="value"
+                animationBegin={0}
+                animationDuration={400}
+                animationEasing="ease-out"
+                isAnimationActive={true}
               >
                 {chartData.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -175,6 +179,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
               <Tooltip
                 content={<CustomTooltip totalValue={totalValue} />}
                 cursor={{ fill: "transparent" }}
+                animationDuration={200}
               />
               <Legend
                 formatter={(_value: string, entry: any) => (
@@ -184,6 +189,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                     )
                   </span>
                 )}
+                wrapperStyle={{ fontSize: "12px" }}
               />
             </RechartsPieChart>
           </ResponsiveContainer>

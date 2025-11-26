@@ -7,3 +7,4 @@ export {
   ThemeStatus,
 } from "./ThemeProvider";
 export { RainbowKitWithTheme } from "./RainbowKitProvider";
+export { OfflineIndicator } from "./OfflineIndicator";

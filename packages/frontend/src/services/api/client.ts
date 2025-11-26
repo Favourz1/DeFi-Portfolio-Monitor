@@ -1,6 +1,12 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@/config/constants";
 import { ApiResponse, ApiError } from "@/types/api.types";
+import {
+  isOnline,
+  isNetworkError,
+  logError,
+  getErrorMessage,
+} from "@/utils/error";
 
 /**
  * Custom error class for API errors
@@ -39,35 +45,42 @@ const createApiClient = (): AxiosInstance => {
     }
   );
 
-  // Response interceptor
+  // Response interceptor with enhanced error handling
   client.interceptors.response.use(
     (response) => {
       // API returns standardized format, extract data
       return response;
     },
-    (error: AxiosError<ApiError>) => {
+    async (error: AxiosError<ApiError>) => {
+      // Log error for debugging
+      logError(error, {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+      });
+
       if (error.response) {
         // Server responded with error
         const apiError = error.response.data;
-        throw new ApiRequestError(
-          apiError?.message || "An error occurred",
-          error.response.status,
-          error
+        const message = getErrorMessage(
+          new Error(apiError?.message || "An error occurred")
         );
+        throw new ApiRequestError(message, error.response.status, error);
       } else if (error.request) {
-        // Request made but no response
-        throw new ApiRequestError(
-          "Network error: Unable to reach server",
-          0,
-          error
-        );
+        // Request made but no response (network error)
+        if (!isOnline()) {
+          throw new ApiRequestError(
+            "You appear to be offline. Please check your internet connection.",
+            0,
+            error
+          );
+        }
+        const message = getErrorMessage(error);
+        throw new ApiRequestError(message, 0, error);
       } else {
         // Something else happened
-        throw new ApiRequestError(
-          error.message || "An unexpected error occurred",
-          0,
-          error
-        );
+        const message = getErrorMessage(error);
+        throw new ApiRequestError(message, 0, error);
       }
     }
   );

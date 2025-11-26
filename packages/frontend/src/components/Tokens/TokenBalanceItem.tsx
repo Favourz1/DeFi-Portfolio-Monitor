@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { TokenBalance } from "@/types/token.types";
 import { formatTokenBalance, formatUSD } from "@/utils/format";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,12 +15,21 @@ interface TokenBalanceItemProps {
  * @remarks
  * Displays token logo, symbol, name, balance, and USD value
  * Responsive design: row on desktop, card on mobile
+ * Memoized to prevent unnecessary re-renders when parent updates
  */
-export function TokenBalanceItem({ token, className }: TokenBalanceItemProps) {
+export const TokenBalanceItem = memo(function TokenBalanceItem({
+  token,
+  className,
+}: TokenBalanceItemProps) {
   const { symbol, name, balance, usdValue, logo, contractAddress } = token;
 
   return (
-    <Card className={cn("transition-colors hover:bg-muted/50", className)}>
+    <Card
+      className={cn(
+        "transition-all duration-200 ease-in-out hover:bg-muted/50 hover-lift focus-ring",
+        className
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-4">
           {/* Token Info */}
@@ -77,4 +87,4 @@ export function TokenBalanceItem({ token, className }: TokenBalanceItemProps) {
       </CardContent>
     </Card>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { Network } from "@/types/wallet.types";
 import { TokenBalance } from "@/types/token.types";
@@ -49,6 +49,11 @@ export function TokenBalanceList({ address, network }: TokenBalanceListProps) {
     // Return ETH first, then sorted tokens
     return [ethToken, ...tokens];
   }, [data]);
+
+  // Memoize refresh handler
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   // Loading skeleton
   if (isLoading) {
@@ -105,7 +110,7 @@ export function TokenBalanceList({ address, network }: TokenBalanceListProps) {
                 "Unable to fetch token balances. Please try again."}
             </p>
             <button
-              onClick={() => refetch()}
+              onClick={handleRefresh}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
             >
               Try Again
@@ -156,13 +161,18 @@ export function TokenBalanceList({ address, network }: TokenBalanceListProps) {
       </CardHeader>
       <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {sortedTokensWithEth.map((token, index) => (
-          <TokenBalanceItem
+          <div
             key={token.contractAddress}
-            token={token}
-            className={
-              index === 0 ? "border-primary/20 bg-primary/5" : undefined
-            }
-          />
+            className="animate-slide-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <TokenBalanceItem
+              token={token}
+              className={
+                index === 0 ? "border-primary/20 bg-primary/5" : undefined
+              }
+            />
+          </div>
         ))}
       </CardContent>
     </Card>

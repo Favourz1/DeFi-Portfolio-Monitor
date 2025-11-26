@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,27 +46,35 @@ export function TransactionHistory({
     limit: 20,
   });
 
-  // Flatten all pages of transactions
-  const allTransactions =
-    data?.pages?.flatMap((page) => page.transactions) ?? [];
+  // Flatten all pages of transactions (memoized to prevent recalculation)
+  const allTransactions = useMemo(
+    () => data?.pages?.flatMap((page) => page.transactions) ?? [],
+    [data?.pages]
+  );
 
-  const handleSearchChange = (search: string) => {
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleSearchChange = useCallback((search: string) => {
     setSearchTerm(search);
-  };
+  }, []);
 
-  const handleFilterChange = (type: TransactionFilterType) => {
+  const handleFilterChange = useCallback((type: TransactionFilterType) => {
     setFilterType(type);
-  };
+  }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     refetch();
-  };
+  }, [refetch]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setFilterType("all");
+  }, []);
 
   return (
     <Card>
@@ -156,10 +164,7 @@ export function TransactionHistory({
               <Button
                 variant="outline"
                 className="mt-4 cursor-pointer"
-                onClick={() => {
-                  setSearchTerm("");
-                  setFilterType("all");
-                }}
+                onClick={handleClearFilters}
               >
                 Clear Filters
               </Button>
@@ -169,14 +174,19 @@ export function TransactionHistory({
 
         {/* Transaction List */}
         {!isLoading && !isError && allTransactions.length > 0 && (
-          <div className="space-y-3">
-            {allTransactions.map((transaction) => (
-              <TransactionItem
+          <div className="space-y-3 animate-fade-in">
+            {allTransactions.map((transaction, index) => (
+              <div
                 key={transaction.hash}
-                transaction={transaction}
-                currentAddress={address}
-                network={network}
-              />
+                className="animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <TransactionItem
+                  transaction={transaction}
+                  currentAddress={address}
+                  network={network}
+                />
+              </div>
             ))}
 
             {/* Load More Button */}

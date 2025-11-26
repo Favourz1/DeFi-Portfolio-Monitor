@@ -12,7 +12,7 @@ import {
   DollarSign,
   Coins,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
 interface PortfolioOverviewProps {
   address: string;
@@ -35,7 +35,7 @@ export function PortfolioOverview({
     network
   );
 
-  // Calculate breakdown values
+  // Calculate breakdown values (memoized to prevent recalculation)
   const breakdown = useMemo(() => {
     if (!data) return null;
 
@@ -54,6 +54,11 @@ export function PortfolioOverview({
       tokensPercentage: totalValue > 0 ? (tokensValue / totalValue) * 100 : 0,
     };
   }, [data]);
+
+  // Memoize refresh handler
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   // Loading skeleton
   if (isLoading) {
@@ -110,7 +115,7 @@ export function PortfolioOverview({
                 "Unable to fetch portfolio data. Please try again."}
             </p>
             <Button
-              onClick={() => refetch()}
+              onClick={handleRefresh}
               disabled={isFetching}
               variant="outline"
               className="cursor-pointer"
@@ -160,7 +165,7 @@ export function PortfolioOverview({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             disabled={isFetching}
             className="cursor-pointer"
           >

@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { WalletConnection } from "@/components/Wallet/WalletConnection";
 import { NetworkSelector } from "@/components/Wallet/NetworkSelector";
 import { ManualAddressInput } from "@/components/Wallet/ManualAddressInput";
 import { PortfolioOverview } from "@/components/Portfolio/PortfolioOverview";
 import { TokenBalanceList } from "@/components/Tokens/TokenBalanceList";
-import { TransactionHistory } from "@/components/Transactions/TransactionHistory";
 import { ThemeToggle } from "@/components/Layout/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
-import { Search, X } from "lucide-react";
-import { PortfolioChart } from "@/components";
+import { Search, X, Loader2 } from "lucide-react";
+import { LoadingSkeleton } from "@/components/Loading/LoadingSkeleton";
+
+// Lazy load heavy components for better initial load performance
+const PortfolioChart = lazy(() =>
+  import("@/components/Portfolio/PortfolioChart").then((module) => ({
+    default: module.PortfolioChart,
+  }))
+);
+
+const TransactionHistory = lazy(() =>
+  import("@/components/Transactions/TransactionHistory").then((module) => ({
+    default: module.TransactionHistory,
+  }))
+);
 
 /**
  * Home page component - main dashboard for the DeFi Portfolio Tracker
@@ -133,9 +145,19 @@ export function Home() {
         ) : (
           <div className="space-y-8">
             <PortfolioOverview address={address!} network={network} />
-            <PortfolioChart address={address!} network={network} />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              }
+            >
+              <PortfolioChart address={address!} network={network} />
+            </Suspense>
             <TokenBalanceList address={address!} network={network} />
-            <TransactionHistory address={address!} network={network} />
+            <Suspense fallback={<LoadingSkeleton variant="transactionList" />}>
+              <TransactionHistory address={address!} network={network} />
+            </Suspense>
           </div>
         )}
       </main>
