@@ -75,6 +75,13 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@/common/(.*)$": "<rootDir>/common/$1",
+      "^@/config/(.*)$": "<rootDir>/config/$1",
+      "^@/blockchain/(.*)$": "<rootDir>/blockchain/$1",
+      "^@/wallet/(.*)$": "<rootDir>/wallet/$1"
+    }
   }
 }
