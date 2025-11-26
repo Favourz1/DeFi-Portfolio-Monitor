@@ -1,10 +1,12 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   test: {
+    globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
   },
@@ -19,6 +21,17 @@ export default defineConfig({
       "@/utils": path.resolve(__dirname, "./src/utils"),
       "@/config": path.resolve(__dirname, "./src/config"),
       "@/lib": path.resolve(__dirname, "./src/lib"),
+      buffer: "buffer",
+    },
+  },
+  define: {
+    global: "globalThis",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
     },
   },
 });

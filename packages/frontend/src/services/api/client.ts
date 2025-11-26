@@ -9,7 +9,7 @@ export class ApiRequestError extends Error {
   constructor(
     message: string,
     public statusCode: number,
-    public originalError?: any
+    public originalError?: unknown
   ) {
     super(message);
     this.name = "ApiRequestError";

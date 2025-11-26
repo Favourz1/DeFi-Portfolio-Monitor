@@ -62,9 +62,14 @@ export function useWallet() {
 
     try {
       await switchChain({ chainId: targetChainId });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle user rejection
-      if (error.code === 4001) {
+      const errorCode =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: number }).code
+          : undefined;
+
+      if (errorCode === 4001) {
         throw new Error("Network switch rejected");
       }
       throw error;

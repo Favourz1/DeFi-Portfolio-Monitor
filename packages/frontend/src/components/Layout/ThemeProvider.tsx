@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ThemeProvider as NextThemesProvider,
   useTheme as useNextTheme,
@@ -12,21 +12,6 @@ import { Moon, Sun, Monitor } from "lucide-react";
  * - any string starting with "data-"
  */
 type Attribute = "class" | `data-${string}`;
-
-/**
- * Theme context type
- */
-interface ThemeContextType {
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
-  systemTheme: string | undefined;
-  resolvedTheme: string | undefined;
-}
-
-/**
- * Theme context
- */
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 /**
  * Props for ThemeProvider component

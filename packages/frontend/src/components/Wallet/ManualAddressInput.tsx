@@ -65,9 +65,11 @@ export function ManualAddressInput({
       setManualAddress(address.trim());
       toast.success("Address set successfully");
       onAddressSet?.(address.trim());
-    } catch (err: any) {
-      setError(err.message || "Failed to set address");
-      toast.error(err.message || "Failed to set address");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to set address";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsValidating(false);
     }
@@ -209,9 +211,11 @@ export function ManualAddressInputCompact({
       toast.success("Address set successfully");
       onAddressSet?.(address.trim());
       setAddress("");
-    } catch (err: any) {
-      setError(err.message || "Failed to set address");
-      toast.error(err.message || "Failed to set address");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to set address";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsValidating(false);
     }

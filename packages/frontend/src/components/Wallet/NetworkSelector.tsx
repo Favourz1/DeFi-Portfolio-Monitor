@@ -43,12 +43,19 @@ export function NetworkSelector() {
       await switchChain({ chainId: targetChainId });
       const networkName = targetChainId === mainnet.id ? "Mainnet" : "Sepolia";
       toast.success(`Switched to ${networkName}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // User rejected the switch
-      if (error.code === 4001 || error.message?.includes("User rejected")) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to switch network";
+      const errorCode =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: number }).code
+          : undefined;
+
+      if (errorCode === 4001 || errorMessage.includes("User rejected")) {
         toast.error("Network switch rejected");
       } else {
-        toast.error(error.message || "Failed to switch network");
+        toast.error(errorMessage);
       }
     }
   };
@@ -162,8 +169,10 @@ export function NetworkSelectorCompact() {
 
     try {
       await switchChain({ chainId: targetChainId });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to switch network");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to switch network";
+      toast.error(errorMessage);
     }
   };
 
