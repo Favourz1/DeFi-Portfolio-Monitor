@@ -8,9 +8,14 @@ import {
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import { ethers } from "ethers";
+import Decimal from "decimal.js";
 import { AlchemyProvider } from "@/blockchain/providers/alchemy.provider";
 import { EtherscanProvider } from "@/blockchain/providers/etherscan.provider";
 import { CoingeckoProvider } from "@/blockchain/providers/coingecko.provider";
+import {
+  EtherscanTransaction,
+  EtherscanTokenTransfer,
+} from "@/blockchain/providers/interfaces/etherscan.interface";
 import {
   TokenBalancesResponse,
   TokenBalance,
@@ -78,13 +83,17 @@ export class WalletService {
         network
       );
 
-      // Calculate token balances with USD values
+      // Calculate token balances with USD values using Decimal for precision
       const tokens: TokenBalance[] = tokenBalancesRaw.map((token, index) => {
         const metadata = tokenMetadata[index];
         const balanceBN = ethers.BigNumber.from(token.tokenBalance);
         const balance = ethers.utils.formatUnits(balanceBN, metadata.decimals);
         const price = tokenPrices.get(token.contractAddress.toLowerCase()) || 0;
-        const usdValue = (parseFloat(balance) * price).toFixed(2);
+
+        // Use Decimal.js for precise USD value calculation
+        const usdValue = new Decimal(balance)
+          .mul(price)
+          .toFixed(2, Decimal.ROUND_DOWN); // Round down for conservative estimates
 
         return {
           contractAddress: token.contractAddress,
@@ -97,18 +106,26 @@ export class WalletService {
         };
       });
 
-      // Calculate ETH balance and USD value
+      // Calculate ETH balance and USD value using Decimal
       const ethBalance = ethers.utils.formatEther(ethBalanceWei);
-      const ethUsdValue = (parseFloat(ethBalance) * ethPrice).toFixed(2);
+      const ethUsdValue = new Decimal(ethBalance)
+        .mul(ethPrice)
+        .toFixed(2, Decimal.ROUND_DOWN);
 
-      // Calculate total portfolio value
-      const totalValue = (
-        parseFloat(ethUsdValue) +
-        tokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
-      ).toFixed(2);
+      // Calculate total portfolio value using Decimal to avoid floating point errors
+      const totalValue = tokens
+        .reduce(
+          (sum, token) => sum.plus(token.usdValue),
+          new Decimal(ethUsdValue)
+        )
+        .toFixed(2, Decimal.ROUND_DOWN);
 
-      // Sort tokens by USD value (descending)
-      tokens.sort((a, b) => parseFloat(b.usdValue) - parseFloat(a.usdValue));
+      // Sort tokens by USD value (descending) using Decimal for comparison
+      tokens.sort((a, b) => {
+        const aValue = new Decimal(a.usdValue);
+        const bValue = new Decimal(b.usdValue);
+        return bValue.comparedTo(aValue);
+      });
 
       const response: TokenBalancesResponse = {
         address,
@@ -163,8 +180,8 @@ export class WalletService {
       const page = Math.floor(offset / limit) + 1;
 
       // Fetch ETH transactions and token transfers with individual error handling
-      let normalTxs: any[] = [];
-      let tokenTxs: any[] = [];
+      let normalTxs: EtherscanTransaction[] = [];
+      let tokenTxs: EtherscanTokenTransfer[] = [];
 
       try {
         normalTxs = await this.etherscanProvider.getNormalTransactions(

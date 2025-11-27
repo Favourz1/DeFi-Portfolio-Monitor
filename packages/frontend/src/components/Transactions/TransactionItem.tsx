@@ -12,6 +12,7 @@ import {
 } from "@/utils/format";
 import { CHAIN_CONFIG } from "@/config/constants";
 import { Network } from "@/types/wallet.types";
+import Decimal from "decimal.js";
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -138,7 +139,7 @@ export const TransactionItem = memo(function TransactionItem({
               {/* Mobile: Amount and timestamp */}
               <div className="mt-2 sm:hidden">
                 <div className="font-medium text-sm">{formattedAmount}</div>
-                {parseFloat(usdValue) > 0 && (
+                {new Decimal(usdValue).gt(0) && (
                   <div className="text-xs text-muted-foreground">
                     {formatUSD(usdValue)}
                   </div>
@@ -158,7 +159,7 @@ export const TransactionItem = memo(function TransactionItem({
             </div>
 
             {/* USD value */}
-            {parseFloat(usdValue) > 0 && (
+            {new Decimal(usdValue).gt(0) && (
               <div className="text-xs text-muted-foreground">
                 {formatUSD(usdValue)}
               </div>

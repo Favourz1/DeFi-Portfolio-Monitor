@@ -3,6 +3,7 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
 import { ethers } from "ethers";
+import { AlchemyTokenBalance } from "./interfaces/alchemy.interface";
 
 /**
  * Alchemy API provider for blockchain data
@@ -47,7 +48,7 @@ export class AlchemyProvider {
   async getTokenBalances(
     address: string,
     network: "mainnet" | "sepolia"
-  ): Promise<any[]> {
+  ): Promise<AlchemyTokenBalance[]> {
     try {
       const url = this.alchemyUrls[network];
 
@@ -68,7 +69,7 @@ export class AlchemyProvider {
 
       // Filter out zero balances
       return tokenBalances.filter(
-        (token: any) =>
+        (token: AlchemyTokenBalance) =>
           token.tokenBalance !== "0x0" && token.tokenBalance !== "0x"
       );
     } catch (error) {

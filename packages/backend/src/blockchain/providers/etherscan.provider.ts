@@ -2,6 +2,10 @@ import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
+import {
+  EtherscanTransaction,
+  EtherscanTokenTransfer,
+} from "./interfaces/etherscan.interface";
 
 /**
  * Etherscan API V2 provider for transaction history
@@ -46,7 +50,7 @@ export class EtherscanProvider {
     network: "mainnet" | "sepolia",
     page: number = 1,
     offset: number = 20
-  ): Promise<any[]> {
+  ): Promise<EtherscanTransaction[]> {
     try {
       // Validate API key
       if (!this.apiKey) {
@@ -121,7 +125,7 @@ export class EtherscanProvider {
     network: "mainnet" | "sepolia",
     page: number = 1,
     offset: number = 20
-  ): Promise<any[]> {
+  ): Promise<EtherscanTokenTransfer[]> {
     try {
       // Validate API key
       if (!this.apiKey) {

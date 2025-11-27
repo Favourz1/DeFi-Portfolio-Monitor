@@ -12,12 +12,56 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  TooltipProps,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import Decimal from "decimal.js";
 
 interface PortfolioChartProps {
   address: string;
   network: Network;
+}
+
+/**
+ * Chart data entry interface for type safety
+ * Must match Recharts ChartDataInput type (with index signature)
+ */
+interface ChartDataEntry {
+  name: string;
+  symbol: string;
+  value: number;
+  color: string;
+  [key: string]: string | number; // Index signature for Recharts compatibility
+}
+
+/**
+ * Recharts tooltip payload entry
+ */
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  payload: ChartDataEntry;
+  color: string;
+}
+
+/**
+ * Custom tooltip props interface
+ */
+interface CustomTooltipProps extends TooltipProps<number, string> {
+  totalValue: number;
+  payload?: TooltipPayloadEntry[];
+}
+
+/**
+ * Recharts Legend formatter entry type
+ * All fields are optional to match Recharts' actual type structure
+ */
+interface LegendEntry {
+  value?: string;
+  type?: string;
+  id?: string;
+  color?: string;
+  payload?: ChartDataEntry;
 }
 
 /**
@@ -31,34 +75,34 @@ interface PortfolioChartProps {
 export function PortfolioChart({ address, network }: PortfolioChartProps) {
   const { data, isLoading, error } = usePortfolio(address, network);
 
-  // Prepare chart data
-  const chartData = useMemo(() => {
+  // Prepare chart data using Decimal for precision
+  const chartData = useMemo((): ChartDataEntry[] => {
     if (!data) return [];
 
-    const items = [];
+    const items: ChartDataEntry[] = [];
 
-    // Add ETH if it has value
-    const ethValue = parseFloat(data.ethBalance.usdValue);
-    if (ethValue > 0) {
+    // Add ETH if it has value using Decimal
+    const ethValue = new Decimal(data.ethBalance.usdValue);
+    if (ethValue.gt(0)) {
       items.push({
         name: "ETH",
         symbol: "ETH",
-        value: ethValue,
+        value: ethValue.toNumber(),
         color: "#627EEA", // Ethereum blue
       });
     }
 
-    // Add tokens with value > 0
+    // Add tokens with value > 0 using Decimal
     data.tokens.forEach((token, index) => {
-      const value = parseFloat(token.usdValue);
-      if (value > 0) {
+      const value = new Decimal(token.usdValue);
+      if (value.gt(0)) {
         items.push({
           name:
             token.name.length > 15
               ? `${token.name.slice(0, 15)}...`
               : token.name,
           symbol: token.symbol,
-          value,
+          value: value.toNumber(),
           color: CHART_COLORS[index % CHART_COLORS.length],
         });
       }
@@ -160,7 +204,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <RechartsPieChart>
               <Pie
-                data={chartData}
+                data={chartData as unknown as Array<Record<string, unknown>>}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -172,7 +216,7 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                 animationEasing="ease-out"
                 isAnimationActive={true}
               >
-                {chartData.map((entry: any, index: number) => (
+                {chartData.map((entry: ChartDataEntry, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -182,13 +226,20 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
                 animationDuration={200}
               />
               <Legend
-                formatter={(_value: string, entry: any) => (
-                  <span style={{ color: entry.color }}>
-                    {entry.payload.symbol} (
-                    {formatPercentage((entry.payload.value / totalValue) * 100)}
-                    )
-                  </span>
-                )}
+                formatter={(_value: string, entry: unknown) => {
+                  const legendEntry = entry as LegendEntry;
+                  if (!legendEntry.payload) return _value;
+                  const percentage = new Decimal(legendEntry.payload.value)
+                    .div(totalValue)
+                    .mul(100)
+                    .toNumber();
+                  return (
+                    <span style={{ color: legendEntry.color }}>
+                      {legendEntry.payload.symbol} (
+                      {formatPercentage(percentage)})
+                    </span>
+                  );
+                }}
                 wrapperStyle={{ fontSize: "12px" }}
               />
             </RechartsPieChart>
@@ -198,7 +249,11 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
         {/* Legend for mobile */}
         <div className="grid grid-cols-2 gap-2 mt-4 md:hidden">
           {chartData.map((item) => {
-            const percentage = (item.value / totalValue) * 100;
+            // Use Decimal.js for percentage calculation (consistent with tooltip)
+            const percentage = new Decimal(item.value)
+              .div(totalValue)
+              .mul(100)
+              .toNumber();
             return (
               <div key={item.symbol} className="flex items-center gap-2">
                 <div
@@ -220,9 +275,11 @@ export function PortfolioChart({ address, network }: PortfolioChartProps) {
   );
 }
 
-const CustomTooltip = (props: any) => {
-  const { active, payload, totalValue } = props;
-
+const CustomTooltip: React.FC<CustomTooltipProps> = ({
+  active,
+  payload,
+  totalValue,
+}) => {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -230,8 +287,9 @@ const CustomTooltip = (props: any) => {
   const data = payload[0]?.payload;
   if (!data) return null;
 
-  const value = data.value as number;
-  const percentage = (value / totalValue) * 100;
+  const value = data.value;
+  // Use Decimal for percentage calculation
+  const percentage = new Decimal(value).div(totalValue).mul(100).toNumber();
 
   return (
     <div

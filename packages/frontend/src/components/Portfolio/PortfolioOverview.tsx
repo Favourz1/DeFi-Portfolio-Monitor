@@ -13,6 +13,7 @@ import {
   Coins,
 } from "lucide-react";
 import { useMemo, useCallback } from "react";
+import Decimal from "decimal.js";
 
 interface PortfolioOverviewProps {
   address: string;
@@ -35,23 +36,32 @@ export function PortfolioOverview({
     network
   );
 
-  // Calculate breakdown values (memoized to prevent recalculation)
+  // Calculate breakdown values using Decimal for precision (memoized to prevent recalculation)
   const breakdown = useMemo(() => {
     if (!data) return null;
 
-    const ethValue = parseFloat(data.ethBalance.usdValue);
+    // Use Decimal.js for all financial calculations to maintain precision
+    const ethValue = new Decimal(data.ethBalance.usdValue);
     const tokensValue = data.tokens.reduce(
-      (sum, token) => sum + parseFloat(token.usdValue),
-      0
+      (sum, token) => sum.plus(new Decimal(token.usdValue)),
+      new Decimal(0)
     );
-    const totalValue = parseFloat(data.totalValue);
+    const totalValue = new Decimal(data.totalValue);
+
+    // Calculate percentages using Decimal
+    const ethPercentage = totalValue.gt(0)
+      ? ethValue.div(totalValue).mul(100).toNumber()
+      : 0;
+    const tokensPercentage = totalValue.gt(0)
+      ? tokensValue.div(totalValue).mul(100).toNumber()
+      : 0;
 
     return {
-      ethValue,
-      tokensValue,
-      totalValue,
-      ethPercentage: totalValue > 0 ? (ethValue / totalValue) * 100 : 0,
-      tokensPercentage: totalValue > 0 ? (tokensValue / totalValue) * 100 : 0,
+      ethValue: ethValue.toNumber(),
+      tokensValue: tokensValue.toNumber(),
+      totalValue: totalValue.toNumber(),
+      ethPercentage,
+      tokensPercentage,
     };
   }, [data]);
 
@@ -214,7 +224,7 @@ export function PortfolioOverview({
                     {formatUSD(breakdown.ethValue)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {parseFloat(data.ethBalance.balance).toFixed(4)} ETH
+                    {new Decimal(data.ethBalance.balance).toFixed(4)} ETH
                   </p>
                 </div>
               </div>

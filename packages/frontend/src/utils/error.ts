@@ -60,6 +60,40 @@ export function isTimeoutError(error: unknown): boolean {
 }
 
 /**
+ * Check if error is a rate limit error (429)
+ */
+export function isRateLimitError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return (
+      error.message.includes("429") ||
+      error.message.includes("rate limit") ||
+      error.message.includes("Too many requests") ||
+      (error as { statusCode?: number }).statusCode === 429
+    );
+  }
+  return false;
+}
+
+/**
+ * Get retry-after delay from rate limit error (if available)
+ */
+export function getRetryAfterDelay(error: unknown): number | null {
+  if (error instanceof Error && "response" in error) {
+    const axiosError = error as {
+      response?: { headers?: { "retry-after"?: string } };
+    };
+    const retryAfter = axiosError.response?.headers?.["retry-after"];
+    if (retryAfter) {
+      const seconds = parseInt(retryAfter, 10);
+      if (!isNaN(seconds)) {
+        return seconds * 1000; // Convert to milliseconds
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Log error for debugging
  *
  * @param error - Error to log
@@ -99,8 +133,13 @@ export function getErrorMessage(error: unknown): string {
       return "Request timed out. Please try again.";
     }
 
-    // Rate limit errors
-    if (error.message.includes("429") || error.message.includes("rate limit")) {
+    // Rate limit errors with retry-after information
+    if (isRateLimitError(error)) {
+      const retryAfter = getRetryAfterDelay(error);
+      if (retryAfter) {
+        const minutes = Math.ceil(retryAfter / 60000);
+        return `Too many requests. Please wait ${minutes} minute${minutes > 1 ? "s" : ""} before trying again.`;
+      }
       return "Too many requests. Please wait a moment and try again.";
     }
 

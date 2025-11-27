@@ -6,7 +6,13 @@ import { ErrorBoundary } from "@/components/Layout/ErrorBoundary";
 import { OfflineIndicator } from "@/components/Layout/OfflineIndicator";
 import { Home } from "@/pages/Home";
 import { config } from "@/config/wagmi.config";
-import { isOnline, calculateBackoffDelay } from "@/utils/error";
+import {
+  isOnline,
+  isRateLimitError,
+  getRetryAfterDelay,
+  calculateBackoffDelay,
+} from "@/utils/error";
+import { ApiRequestError } from "@/services/api/client";
 
 // Import RainbowKit styles
 import "@rainbow-me/rainbowkit/styles.css";
@@ -32,13 +38,41 @@ const queryClient = new QueryClient({
         if (!isOnline()) {
           return false;
         }
-        // Retry up to 3 times with exponential backoff
+
+        // Don't retry on rate limit errors (429) - let user handle it
+        if (
+          isRateLimitError(error) ||
+          (error instanceof ApiRequestError && error.statusCode === 429)
+        ) {
+          return false;
+        }
+
+        // Don't retry on client errors (4xx except 429)
+        if (
+          error instanceof ApiRequestError &&
+          error.statusCode >= 400 &&
+          error.statusCode < 500
+        ) {
+          return false;
+        }
+
+        // Retry up to 3 times with exponential backoff for server errors and network issues
         if (failureCount < 3) {
           return true;
         }
         return false;
       },
-      retryDelay: (attemptIndex) => calculateBackoffDelay(attemptIndex),
+      retryDelay: (attemptIndex, error) => {
+        // Use retry-after header if available (rate limiting)
+        if (isRateLimitError(error)) {
+          const retryAfter = getRetryAfterDelay(error);
+          if (retryAfter) {
+            return retryAfter;
+          }
+        }
+        // Otherwise use exponential backoff
+        return calculateBackoffDelay(attemptIndex);
+      },
     },
   },
 });

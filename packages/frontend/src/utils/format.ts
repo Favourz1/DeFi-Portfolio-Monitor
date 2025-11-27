@@ -1,3 +1,5 @@
+import Decimal from "decimal.js";
+
 /**
  * Format Ethereum address for display (0x1234...5678)
  *
@@ -11,7 +13,7 @@ export function formatAddress(address: string, chars: number = 4): string {
 }
 
 /**
- * Format token balance with appropriate decimals
+ * Format token balance with appropriate decimals using Decimal.js for precision
  *
  * @param balance - Token balance as string
  * @param decimals - Number of decimal places to show (default: 4)
@@ -21,34 +23,56 @@ export function formatTokenBalance(
   balance: string,
   decimals: number = 4
 ): string {
-  const num = parseFloat(balance);
+  // Use Decimal.js for precision
+  let num: Decimal;
+  try {
+    num = new Decimal(balance);
+  } catch {
+    return "0";
+  }
 
-  if (num === 0) return "0";
-  if (num < 0.0001) return "< 0.0001";
-  if (num < 1) return num.toFixed(decimals);
-  if (num < 1000) return num.toFixed(2);
-  if (num < 1000000) return `${(num / 1000).toFixed(2)}K`;
+  // Handle edge cases with Decimal
+  if (num.isNaN() || !num.isFinite()) return "0";
+  if (num.lte(0)) return "0"; // Negative balances shouldn't exist, but handle gracefully
+  if (num.eq(0)) return "0";
+  if (num.lt(0.0001)) return "< 0.0001";
+  if (num.lt(1)) return num.toFixed(decimals);
+  if (num.lt(1000)) return num.toFixed(2);
+  if (num.lt(1000000)) {
+    return `${num.div(1000).toFixed(2)}K`;
+  }
 
-  return `${(num / 1000000).toFixed(2)}M`;
+  return `${num.div(1000000).toFixed(2)}M`;
 }
 
 /**
- * Format USD value with $ sign and commas
+ * Format USD value with $ sign and commas using Decimal.js for precision
  *
  * @param value - USD value as string or number
  * @returns Formatted USD string
  */
 export function formatUSD(value: string | number): string {
-  const num = typeof value === "string" ? parseFloat(value) : value;
+  // Use Decimal.js for precision
+  let num: Decimal;
+  try {
+    num = typeof value === "string" ? new Decimal(value) : new Decimal(value);
+  } catch {
+    return "$0.00";
+  }
 
-  if (isNaN(num)) return "$0.00";
+  // Handle edge cases with Decimal
+  if (num.isNaN() || !num.isFinite()) return "$0.00";
+  if (num.lte(0)) return "$0.00"; // Negative values shouldn't exist, but handle gracefully
+
+  // Convert to number only for Intl.NumberFormat (which handles display precision)
+  const displayValue = num.toNumber();
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(num);
+  }).format(displayValue);
 }
 
 /**
@@ -102,19 +126,21 @@ export function formatTransactionHash(hash: string, chars: number = 6): string {
 }
 
 /**
- * Format large numbers with appropriate suffixes (K, M, B)
+ * Format large numbers with appropriate suffixes (K, M, B) using Decimal.js for precision
  *
  * @param value - Number to format
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted number string
  */
 export function formatLargeNumber(value: number, decimals: number = 2): string {
-  if (value === 0) return "0";
-  if (value < 1000) return value.toFixed(decimals);
-  if (value < 1000000) return `${(value / 1000).toFixed(decimals)}K`;
-  if (value < 1000000000) return `${(value / 1000000).toFixed(decimals)}M`;
+  const num = new Decimal(value);
 
-  return `${(value / 1000000000).toFixed(decimals)}B`;
+  if (num.eq(0)) return "0";
+  if (num.lt(1000)) return num.toFixed(decimals);
+  if (num.lt(1000000)) return `${num.div(1000).toFixed(decimals)}K`;
+  if (num.lt(1000000000)) return `${num.div(1000000).toFixed(decimals)}M`;
+
+  return `${num.div(1000000000).toFixed(decimals)}B`;
 }
 
 /**
@@ -125,5 +151,9 @@ export function formatLargeNumber(value: number, decimals: number = 2): string {
  * @returns Formatted percentage string
  */
 export function formatPercentage(value: number, decimals: number = 2): string {
-  return `${value.toFixed(decimals)}%`;
+  // Handle edge cases
+  if (isNaN(value) || !isFinite(value)) return "0.00%";
+  // Clamp percentage to 0-100 range
+  const clampedValue = Math.max(0, Math.min(100, value));
+  return `${clampedValue.toFixed(decimals)}%`;
 }

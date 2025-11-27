@@ -4,6 +4,8 @@ import { ApiResponse, ApiError } from "@/types/api.types";
 import {
   isOnline,
   isNetworkError,
+  isRateLimitError,
+  getRetryAfterDelay,
   logError,
   getErrorMessage,
 } from "@/utils/error";
@@ -62,10 +64,22 @@ const createApiClient = (): AxiosInstance => {
       if (error.response) {
         // Server responded with error
         const apiError = error.response.data;
+        const statusCode = error.response.status;
+
+        // Enhanced rate limit handling
+        if (statusCode === 429) {
+          const retryAfter = getRetryAfterDelay(error);
+          const baseMessage = apiError?.message || "Too many requests";
+          const message = retryAfter
+            ? `${baseMessage}. Please wait ${Math.ceil(retryAfter / 1000)} seconds before retrying.`
+            : getErrorMessage(new Error(baseMessage));
+          throw new ApiRequestError(message, statusCode, error);
+        }
+
         const message = getErrorMessage(
           new Error(apiError?.message || "An error occurred")
         );
-        throw new ApiRequestError(message, error.response.status, error);
+        throw new ApiRequestError(message, statusCode, error);
       } else if (error.request) {
         // Request made but no response (network error)
         if (!isOnline()) {

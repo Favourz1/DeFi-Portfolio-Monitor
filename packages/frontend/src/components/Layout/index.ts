@@ -1,4 +1,5 @@
 export { ErrorBoundary, withErrorBoundary } from "./ErrorBoundary";
+export { ApiErrorBoundary } from "./ApiErrorBoundary";
 export {
   ThemeProvider,
   useTheme,

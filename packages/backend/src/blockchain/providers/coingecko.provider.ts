@@ -433,7 +433,8 @@ export class CoingeckoProvider {
 
       for (const [address, data] of Object.entries(response.data)) {
         if (data && typeof data === "object" && "usd" in data) {
-          priceMap.set(address.toLowerCase(), (data as any).usd);
+          const priceData = data as { usd: number };
+          priceMap.set(address.toLowerCase(), priceData.usd);
         }
       }
 

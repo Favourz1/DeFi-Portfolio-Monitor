@@ -6,6 +6,7 @@ import { TokenBalanceItem } from "./TokenBalanceItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Coins, AlertCircle } from "lucide-react";
+import Decimal from "decimal.js";
 
 interface TokenBalanceListProps {
   address: string;
@@ -32,8 +33,12 @@ export function TokenBalanceList({ address, network }: TokenBalanceListProps) {
 
     const tokens = [...data.tokens];
 
-    // Sort tokens by USD value (descending)
-    tokens.sort((a, b) => parseFloat(b.usdValue) - parseFloat(a.usdValue));
+    // Sort tokens by USD value (descending) using Decimal for precision
+    tokens.sort((a, b) => {
+      const aValue = new Decimal(a.usdValue);
+      const bValue = new Decimal(b.usdValue);
+      return bValue.comparedTo(aValue);
+    });
 
     // Create ETH token object for consistent display
     const ethToken: TokenBalance = {

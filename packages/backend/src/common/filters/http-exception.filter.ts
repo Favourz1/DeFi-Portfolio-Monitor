@@ -35,7 +35,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message =
         typeof exceptionResponse === "string"
           ? exceptionResponse
-          : (exceptionResponse as any).message || "An error occurred";
+          : typeof exceptionResponse === "object" &&
+              exceptionResponse !== null &&
+              "message" in exceptionResponse &&
+              typeof exceptionResponse.message === "string"
+            ? exceptionResponse.message
+            : "An error occurred";
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = "Internal server error";
