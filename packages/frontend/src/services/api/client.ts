@@ -3,8 +3,6 @@ import { API_BASE_URL } from "@/config/constants";
 import { ApiResponse, ApiError } from "@/types/api.types";
 import {
   isOnline,
-  isNetworkError,
-  isRateLimitError,
   getRetryAfterDelay,
   logError,
   getErrorMessage,
