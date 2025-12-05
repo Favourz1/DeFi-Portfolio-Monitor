@@ -19,7 +19,6 @@ build/
 *.tsbuildinfo
 
 # IDE and editor files
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -93,3 +92,7 @@ temp/
 # Claude files
 .claude/
 AI-context/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
